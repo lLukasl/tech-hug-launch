@@ -321,7 +321,7 @@ function LandingPage() {
                 >
                   <a href={u.whatsapp} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Fale com a {u.name.replace("Unidade ", "Unidade ")}
+                    Falar com {u.shortName}
                   </a>
                 </Button>
               </article>
