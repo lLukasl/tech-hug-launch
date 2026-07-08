@@ -284,7 +284,7 @@ function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {units.map((u) => (
               <article
                 key={u.id}
@@ -298,7 +298,9 @@ function LandingPage() {
                     <h3 className="font-display text-lg font-semibold leading-tight">
                       {u.name}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{u.address}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Endereço enviado no WhatsApp
+                    </p>
                   </div>
                 </div>
 
@@ -319,7 +321,7 @@ function LandingPage() {
                 >
                   <a href={u.whatsapp} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Fale com a {u.name.replace("Unidade ", "Unidade ")}
+                    Falar com {u.shortName}
                   </a>
                 </Button>
               </article>
