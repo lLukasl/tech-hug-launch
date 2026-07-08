@@ -39,45 +39,46 @@
 :root {
   --radius: 0.75rem;
 
-  /* Tech blue + dark gray palette */
-  --background: oklch(0.99 0.005 240);
-  --foreground: oklch(0.2 0.03 250);
+  /* Clínica Cell — vermelho #e31e24, amarelo e verde WhatsApp */
+  --background: oklch(0.99 0.003 60);
+  --foreground: oklch(0.2 0.02 30);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.03 250);
+  --card-foreground: oklch(0.2 0.02 30);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.03 250);
+  --popover-foreground: oklch(0.2 0.02 30);
 
-  /* Deep tech blue */
-  --primary: oklch(0.48 0.16 250);
+  /* Vermelho marca #e31e24 */
+  --primary: oklch(0.57 0.22 27);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.25 0.04 250);
+  --secondary: oklch(0.97 0.01 60);
+  --secondary-foreground: oklch(0.25 0.03 30);
 
-  --muted: oklch(0.96 0.01 240);
-  --muted-foreground: oklch(0.5 0.02 250);
+  --muted: oklch(0.96 0.008 60);
+  --muted-foreground: oklch(0.5 0.02 30);
 
-  --accent: oklch(0.94 0.03 240);
-  --accent-foreground: oklch(0.25 0.04 250);
+  /* Amarelo de destaque */
+  --accent: oklch(0.9 0.16 92);
+  --accent-foreground: oklch(0.22 0.03 60);
 
-  /* Vibrant green CTA */
-  --cta: oklch(0.72 0.18 145);
-  --cta-foreground: oklch(0.15 0.02 250);
+  /* Verde WhatsApp */
+  --cta: oklch(0.68 0.17 148);
+  --cta-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.6 0.22 25);
+  --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.92 0.01 240);
-  --input: oklch(0.92 0.01 240);
-  --ring: oklch(0.48 0.16 250);
+  --border: oklch(0.92 0.01 40);
+  --input: oklch(0.92 0.01 40);
+  --ring: oklch(0.57 0.22 27);
 
-  --gradient-hero: linear-gradient(135deg, oklch(0.28 0.09 250) 0%, oklch(0.42 0.14 245) 60%, oklch(0.55 0.18 240) 100%);
-  --gradient-primary: linear-gradient(135deg, oklch(0.48 0.16 250), oklch(0.6 0.17 235));
-  --shadow-elegant: 0 20px 50px -20px oklch(0.28 0.09 250 / 0.35);
-  --shadow-card: 0 4px 20px -4px oklch(0.28 0.09 250 / 0.08);
-  --shadow-cta: 0 10px 30px -10px oklch(0.72 0.18 145 / 0.5);
+  --gradient-hero: linear-gradient(135deg, oklch(0.32 0.14 27) 0%, oklch(0.5 0.2 27) 55%, oklch(0.62 0.22 32) 100%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.57 0.22 27), oklch(0.68 0.2 40));
+  --shadow-elegant: 0 20px 50px -20px oklch(0.4 0.2 27 / 0.35);
+  --shadow-card: 0 4px 20px -4px oklch(0.4 0.2 27 / 0.1);
+  --shadow-cta: 0 10px 30px -10px oklch(0.68 0.17 148 / 0.55);
 }
 
 @layer base {
