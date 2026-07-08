@@ -298,7 +298,9 @@ function LandingPage() {
                     <h3 className="font-display text-lg font-semibold leading-tight">
                       {u.name}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{u.address}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Endereço enviado no WhatsApp
+                    </p>
                   </div>
                 </div>
 
