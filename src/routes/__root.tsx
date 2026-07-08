@@ -78,12 +78,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Clínica Cell — Assistência Técnica Especializada em Smartphones" },
-      { name: "description", content: "Assistência técnica especializada em conserto de smartphones: troca de tela, bateria, reparo de placa e problemas de carga. Orçamento transparente e profissionais qualificados." },
+      { name: "description", content: "Assistência técnica especializada: troca de tela, bateria, reparo de placa e problemas de carga. Orçamento transparente e profissionais qualificados." },
       { name: "author", content: "Clínica Cell" },
       { property: "og:title", content: "Clínica Cell — Assistência Técnica Especializada em Smartphones" },
-      { property: "og:description", content: "Conserto de smartphones com profissionais qualificados e peças de alta qualidade. Solicite seu orçamento." },
+      { property: "og:description", content: "Assistência técnica especializada: troca de tela, bateria, reparo de placa e problemas de carga. Orçamento transparente e profissionais qualificados." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Clínica Cell — Assistência Técnica Especializada em Smartphones" },
+      { name: "twitter:description", content: "Assistência técnica especializada: troca de tela, bateria, reparo de placa e problemas de carga. Orçamento transparente e profissionais qualificados." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b4c736a7-c2fe-4904-8d1b-ee2d6367c959/id-preview-f4ee181c--5926e199-a2a8-40af-a4c0-ee7b38bd1af9.lovable.app-1783531731840.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b4c736a7-c2fe-4904-8d1b-ee2d6367c959/id-preview-f4ee181c--5926e199-a2a8-40af-a4c0-ee7b38bd1af9.lovable.app-1783531731840.png" },
     ],
     links: [
       {
