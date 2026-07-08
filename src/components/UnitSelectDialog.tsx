@@ -47,7 +47,7 @@ export function UnitSelectDialog({ open, onOpenChange }: Props) {
                   {u.name}
                 </span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                  {u.address}
+                  {u.phone} · {u.hours}
                 </span>
               </span>
             </button>
