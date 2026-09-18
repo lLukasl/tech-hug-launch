@@ -19,7 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { UnitSelectDialog } from "@/components/UnitSelectDialog";
 import { units } from "@/lib/units";
-import logoAsset from "@/assets/clinica-cell-logo.jpeg.asset.json";
 import heroImg from "@/assets/hero-repair.jpg";
 
 const logo = logoAsset.url;
@@ -105,13 +104,7 @@ function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
           <a href="#inicio" className="flex min-w-0 items-center gap-2">
-            <img
-              src={logo}
-              alt="Logo Clínica Cell — smartphone com muletas"
-              width={52}
-              height={52}
-              className="h-12 w-12 shrink-0 rounded-full object-cover"
-            />
+            <img src="/clinica-cell-logo.jpeg" alt="Clínica Cell" />
             <span className="font-display text-lg font-bold tracking-tight text-foreground">
               Clínica<span className="text-primary">Cell</span>
             </span>
