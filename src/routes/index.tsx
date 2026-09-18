@@ -21,7 +21,7 @@ import { UnitSelectDialog } from "@/components/UnitSelectDialog";
 import { units } from "@/lib/units";
 import heroImg from "@/assets/hero-repair.jpg";
 
-const logo = logoAsset.url;
+const logo = "/clinica-cell-logo.jpeg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
