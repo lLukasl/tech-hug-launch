@@ -19,18 +19,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { UnitSelectDialog } from "@/components/UnitSelectDialog";
 import { units } from "@/lib/units";
-import logo from "@/assets/logo-clinica-cell.png";
+import logoAsset from "@/assets/clinica-cell-logo.jpeg.asset.json";
 import heroImg from "@/assets/hero-repair.jpg";
+
+const logo = logoAsset.url;
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Clínica Cell — Assistência Técnica Especializada em Smartphones" },
+      { title: "Clínica Cell — Conserto de Smartphones no DF" },
       {
         name: "description",
         content:
-          "Assistência técnica especializada: troca de tela, bateria, reparo de placa e problemas de carga. Orçamento transparente e profissionais qualificados.",
+          "Clínica Cell: troca de tela, bateria, reparo de placa e conector de carga para smartphones em quatro unidades no Distrito Federal.",
       },
+      { property: "og:title", content: "Clínica Cell — Conserto de Smartphones no DF" },
+      {
+        property: "og:description",
+        content:
+          "Serviços para smartphones e atendimento via WhatsApp nas unidades Núcleo Bandeirante, Gama, Sudoeste e Ponte Alta Norte.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: LandingPage,
@@ -48,12 +58,12 @@ const services = [
   {
     icon: Smartphone,
     title: "Troca de Tela",
-    desc: "Substituição de displays com peças de alta qualidade para os principais modelos do mercado.",
+    desc: "Avaliação e substituição de displays para diferentes modelos de smartphone.",
   },
   {
     icon: BatteryCharging,
     title: "Substituição de Bateria",
-    desc: "Diagnóstico do desgaste e troca por baterias novas, restabelecendo a autonomia do aparelho.",
+    desc: "Avaliação do estado da bateria e consulta sobre a substituição disponível para o aparelho.",
   },
   {
     icon: Cpu,
@@ -76,12 +86,12 @@ const steps = [
   {
     icon: Search,
     title: "Diagnóstico técnico",
-    desc: "Nossa equipe realiza uma análise transparente e apresenta o orçamento antes do reparo.",
+    desc: "A equipe avalia o aparelho e informa o orçamento antes da realização do serviço.",
   },
   {
     icon: ShieldCheck,
-    title: "Reparo com garantia",
-    desc: "Executamos o serviço com profissionais qualificados e devolvemos com garantia formal.",
+    title: "Execução do serviço",
+    desc: "Após a aprovação do orçamento, a equipe realiza o serviço informado.",
   },
 ];
 
@@ -98,9 +108,9 @@ function LandingPage() {
             <img
               src={logo}
               alt="Logo Clínica Cell — smartphone com muletas"
-              width={40}
-              height={40}
-              className="h-10 w-10 shrink-0"
+              width={52}
+              height={52}
+              className="h-12 w-12 shrink-0 rounded-full object-cover"
             />
             <span className="font-display text-lg font-bold tracking-tight text-foreground">
               Clínica<span className="text-primary">Cell</span>
@@ -165,7 +175,7 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section id="inicio" className="relative overflow-hidden bg-gradient-hero text-white">
+      <section id="inicio" className="relative overflow-hidden bg-gradient-hero text-primary-foreground">
         <div className="absolute inset-0 opacity-20">
           <img
             src={heroImg}
@@ -177,17 +187,16 @@ function LandingPage() {
         </div>
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" />
-              Assistência técnica especializada
+              Assistência técnica para smartphones
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-              Seu smartphone quebrado tem{" "}
-              <span className="text-cta">conserto rápido e seguro.</span>
+              Clínica Cell: cuidados para o seu{" "}
+              <span className="text-accent">smartphone.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
-              Diagnóstico transparente, profissionais qualificados e peças de alta qualidade
-              para devolver seu aparelho como novo.
+            <p className="mt-5 max-w-xl text-base text-primary-foreground/80 sm:text-lg">
+              Avaliação, orçamento e serviços de tela, bateria, placa e conector de carga.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -202,7 +211,7 @@ function LandingPage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-12 border-white/30 bg-white/10 px-6 text-white backdrop-blur hover:bg-white/20 hover:text-white"
+                className="h-12 border-primary-foreground/30 bg-primary-foreground/10 px-6 text-primary-foreground backdrop-blur hover:bg-primary-foreground/20 hover:text-primary-foreground"
               >
                 <a href="#servicos">
                   Ver serviços
@@ -211,24 +220,20 @@ function LandingPage() {
               </Button>
             </div>
 
-            <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-white/15 pt-6 text-center sm:text-left">
+            <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-primary-foreground/20 pt-6 text-center sm:text-left">
               <div>
-                <dt className="text-xs text-white/60">Experiência</dt>
-                <dd className="mt-1 font-display text-xl font-bold">+10 anos</dd>
+                <dt className="text-xs text-primary-foreground/70">Atendimento</dt>
+                <dd className="mt-1 font-display text-xl font-bold">Via WhatsApp</dd>
               </div>
               <div>
-                <dt className="text-xs text-white/60">Garantia</dt>
-                <dd className="mt-1 font-display text-xl font-bold">Formal</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-white/60">Unidades</dt>
+                <dt className="text-xs text-primary-foreground/70">Unidades</dt>
                 <dd className="mt-1 font-display text-xl font-bold">{units.length}</dd>
               </div>
             </dl>
           </div>
 
           <div className="relative hidden lg:block">
-            <div className="absolute -inset-8 rounded-3xl bg-white/5 blur-3xl" />
+            <div className="absolute -inset-8 rounded-3xl bg-primary-foreground/5 blur-3xl" />
             <img
               src={heroImg}
               alt="Técnico realizando reparo em smartphone"
@@ -250,8 +255,7 @@ function LandingPage() {
             Soluções técnicas para o seu smartphone
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Trabalhamos com os principais modelos e utilizamos peças de alta qualidade em
-            todos os reparos.
+            Consulte a disponibilidade do serviço para o modelo do seu aparelho.
           </p>
         </div>
 
@@ -392,8 +396,8 @@ function LandingPage() {
                 <span className="font-display text-lg font-bold">Clínica Cell</span>
               </div>
               <p className="mt-4 text-sm text-primary-foreground/70">
-                Assistência técnica especializada em conserto de smartphones. Profissionais
-                qualificados e peças de alta qualidade.
+                Serviços de avaliação e conserto de smartphones com atendimento em quatro
+                unidades no Distrito Federal.
               </p>
             </div>
 
@@ -402,9 +406,8 @@ function LandingPage() {
                 Fale Conosco
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-primary-foreground/70">
-                <li>WhatsApp: (00) 0000-0000</li>
-                <li>E-mail: contato@clinicacell.com.br</li>
-                <li>Seg a Sex: 9h–18h · Sáb: 9h–13h</li>
+                <li>Contatos disponíveis na seção Unidades</li>
+                <li>Seg a Sex: 8h–18h · Sáb: 8h–16h</li>
               </ul>
             </div>
 
@@ -437,8 +440,8 @@ function LandingPage() {
           <div className="mt-12 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/60">
             <p>
               <strong className="text-primary-foreground/80">Clínica Cell</strong> —
-              CNPJ: 00.000.000/0001-00 · Endereço (matriz): Av. Principal, 1000 — Centro,
-              Sua Cidade — UF
+              Endereço da matriz e dados cadastrais disponíveis pelo atendimento da unidade
+              Núcleo Bandeirante.
             </p>
             <p className="mt-2">
               © {new Date().getFullYear()} Clínica Cell. Todos os direitos reservados.
