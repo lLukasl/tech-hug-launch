@@ -189,7 +189,7 @@ function LandingPage() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" />
-              Assistência técnica para smartphones
+              Assitência
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
               Clínica Cell: cuidados para o seu{" "}
