@@ -63,7 +63,7 @@ const services = [
   {
     icon: BatteryCharging,
     title: "Substituição de Bateria",
-    desc: "Diagnóstico do desgaste e troca por baterias novas, restabelecendo a autonomia do aparelho.",
+    desc: "Avaliação do estado da bateria e consulta sobre a substituição disponível para o aparelho.",
   },
   {
     icon: Cpu,
@@ -86,7 +86,7 @@ const steps = [
   {
     icon: Search,
     title: "Diagnóstico técnico",
-    desc: "Nossa equipe realiza uma análise transparente e apresenta o orçamento antes do reparo.",
+    desc: "A equipe avalia o aparelho e informa o orçamento antes da realização do serviço.",
   },
   {
     icon: ShieldCheck,
