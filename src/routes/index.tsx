@@ -27,7 +27,7 @@ const logo = logoAsset.url;
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Clínica Cell — Assistência Técnica Especializada em Smartphones" },
+      { title: "Clínica Cell — Conserto de Smartphones no DF" },
       {
         name: "description",
         content:
@@ -175,7 +175,7 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section id="inicio" className="relative overflow-hidden bg-gradient-hero text-white">
+      <section id="inicio" className="relative overflow-hidden bg-gradient-hero text-primary-foreground">
         <div className="absolute inset-0 opacity-20">
           <img
             src={heroImg}
@@ -187,7 +187,7 @@ function LandingPage() {
         </div>
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" />
               Assistência técnica para smartphones
             </span>
@@ -195,7 +195,7 @@ function LandingPage() {
               Clínica Cell: cuidados para o seu{" "}
               <span className="text-accent">smartphone.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base text-primary-foreground/80 sm:text-lg">
               Avaliação, orçamento e serviços de tela, bateria, placa e conector de carga.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -211,7 +211,7 @@ function LandingPage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-12 border-white/30 bg-white/10 px-6 text-white backdrop-blur hover:bg-white/20 hover:text-white"
+                className="h-12 border-primary-foreground/30 bg-primary-foreground/10 px-6 text-primary-foreground backdrop-blur hover:bg-primary-foreground/20 hover:text-primary-foreground"
               >
                 <a href="#servicos">
                   Ver serviços
@@ -233,7 +233,7 @@ function LandingPage() {
           </div>
 
           <div className="relative hidden lg:block">
-            <div className="absolute -inset-8 rounded-3xl bg-white/5 blur-3xl" />
+            <div className="absolute -inset-8 rounded-3xl bg-primary-foreground/5 blur-3xl" />
             <img
               src={heroImg}
               alt="Técnico realizando reparo em smartphone"
