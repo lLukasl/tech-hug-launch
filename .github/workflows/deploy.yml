@@ -19,8 +19,6 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
-      - name: Verificar output
-        run: ls -la dist/ || echo "ERRO: pasta dist não existe!"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
