@@ -19,6 +19,14 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
+      - name: Debug
+        run: |
+          echo "=== Conteudo do workspace ==="
+          ls -la
+          echo "=== Procurando index.html ==="
+          find . -maxdepth 2 -name "index.html" -not -path "./node_modules/*"
+          echo "=== vite.config ==="
+          cat vite.config.js 2>/dev/null || cat vite.config.ts 2>/dev/null || echo "sem vite.config"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
