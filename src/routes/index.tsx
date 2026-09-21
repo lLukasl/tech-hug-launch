@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Smartphone,
@@ -50,6 +50,7 @@ const nav = [
   { href: "#servicos", label: "Serviços" },
   { href: "#unidades", label: "Unidades" },
   { href: "#como-funciona", label: "Como Funciona" },
+  { href: "/encarte-digital", label: "Encarte Digital" },
   { href: "#contato", label: "Contato" },
 ];
 
@@ -94,6 +95,31 @@ const steps = [
   },
 ];
 
+function NavLink({
+  href,
+  label,
+  className,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  className?: string;
+  onClick?: () => void;
+}) {
+  if (href.startsWith("#")) {
+    return (
+      <a href={href} onClick={onClick} className={className}>
+        {label}
+      </a>
+    );
+  }
+  return (
+    <Link to={href} onClick={onClick} className={className}>
+      {label}
+    </Link>
+  );
+}
+
 function LandingPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
@@ -112,13 +138,12 @@ function LandingPage() {
 
           <nav className="ml-auto hidden items-center gap-7 md:flex">
             {nav.map((l) => (
-              <a
+              <NavLink
                 key={l.href}
                 href={l.href}
+                label={l.label}
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-              >
-                {l.label}
-              </a>
+              />
             ))}
           </nav>
 
@@ -143,14 +168,13 @@ function LandingPage() {
           <div className="border-t border-border bg-background md:hidden">
             <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
               {nav.map((l) => (
-                <a
+                <NavLink
                   key={l.href}
                   href={l.href}
+                  label={l.label}
                   onClick={() => setMobileNav(false)}
                   className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
-                >
-                  {l.label}
-                </a>
+                />
               ))}
               <Button
                 onClick={() => {
@@ -411,9 +435,11 @@ function LandingPage() {
               <ul className="mt-4 grid grid-cols-2 gap-2 text-sm text-primary-foreground/70">
                 {nav.map((l) => (
                   <li key={l.href}>
-                    <a href={l.href} className="hover:text-primary-foreground">
-                      {l.label}
-                    </a>
+                    <NavLink
+                      href={l.href}
+                      label={l.label}
+                      className="hover:text-primary-foreground"
+                    />
                   </li>
                 ))}
                 <li>
