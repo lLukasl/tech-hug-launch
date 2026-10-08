@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EncarteDigitalRouteImport } from './routes/encarte-digital'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
 const EncarteDigitalRoute = EncarteDigitalRouteImport.update({
   id: '/encarte-digital',
   path: '/encarte-digital',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/encarte-digital'
+  fullPaths: '/' | '/admin' | '/encarte-digital'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/encarte-digital'
-  id: '__root__' | '/' | '/encarte-digital'
+  to: '/' | '/admin' | '/encarte-digital'
+  id: '__root__' | '/' | '/admin' | '/encarte-digital'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   EncarteDigitalRoute: typeof EncarteDigitalRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/encarte-digital'
       fullPath: '/encarte-digital'
       preLoaderRoute: typeof EncarteDigitalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   EncarteDigitalRoute: EncarteDigitalRoute,
 }
 export const routeTree = rootRouteImport
