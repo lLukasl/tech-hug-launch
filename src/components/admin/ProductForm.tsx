@@ -79,7 +79,8 @@ export function ProductForm({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const price = Number(preco.replace(",", "."));
-    if (!nome.trim()) return toast.error(categoria === "celular" ? "Informe o modelo." : "Informe o nome.");
+    if (!nome.trim())
+      return toast.error(categoria === "celular" ? "Informe o modelo." : "Informe o nome.");
     if (!Number.isFinite(price) || price < 0) return toast.error("Preço inválido.");
     const bat = bateria ? Number(bateria) : null;
     if (categoria === "celular" && condicao !== "novo" && bat != null && (bat < 0 || bat > 100))
@@ -141,7 +142,9 @@ export function ProductForm({
             setManualCat(true);
           }}
         >
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="celular">Celular</SelectItem>
             <SelectItem value="acessorio">Acessório</SelectItem>
@@ -155,7 +158,9 @@ export function ProductForm({
           value={nome}
           maxLength={120}
           onChange={(e) => onNome(e.target.value)}
-          placeholder={categoria === "celular" ? "Ex: iPhone 15 Pro Max" : "Ex: Película de vidro 9H"}
+          placeholder={
+            categoria === "celular" ? "Ex: iPhone 15 Pro Max" : "Ex: Película de vidro 9H"
+          }
         />
       </div>
 
@@ -165,18 +170,30 @@ export function ProductForm({
             <div className="space-y-2">
               <Label>Marca</Label>
               <Select value={marca} onValueChange={setMarca}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {BRANDS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                  {BRANDS.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {b}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Armazenamento</Label>
               <Select value={armazenamento} onValueChange={setArmazenamento}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {STORAGES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {STORAGES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -187,7 +204,9 @@ export function ProductForm({
             <div className="space-y-2">
               <Label>Condição</Label>
               <Select value={condicao} onValueChange={(v) => setCondicao(v as Condicao)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="novo">Novo</SelectItem>
                   <SelectItem value="seminovo">Seminovo</SelectItem>
@@ -198,7 +217,14 @@ export function ProductForm({
             {condicao !== "novo" && (
               <div className="space-y-2">
                 <Label>Saúde da bateria (%)</Label>
-                <Input type="number" inputMode="numeric" min={0} max={100} value={bateria} onChange={(e) => setBateria(e.target.value)} />
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={100}
+                  value={bateria}
+                  onChange={(e) => setBateria(e.target.value)}
+                />
               </div>
             )}
           </div>
@@ -211,21 +237,34 @@ export function ProductForm({
           </div>
           <div className="space-y-2">
             <Label>Compatível com</Label>
-            <Input value={compativel} maxLength={200} onChange={(e) => setCompativel(e.target.value)} placeholder="Ex: iPhone 15, iPhone 14" />
+            <Input
+              value={compativel}
+              maxLength={200}
+              onChange={(e) => setCompativel(e.target.value)}
+              placeholder="Ex: iPhone 15, iPhone 14"
+            />
           </div>
         </div>
       )}
 
       <div className="space-y-2">
         <Label>Preço (R$)</Label>
-        <Input inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="0,00" />
+        <Input
+          inputMode="decimal"
+          value={preco}
+          onChange={(e) => setPreco(e.target.value)}
+          placeholder="0,00"
+        />
       </div>
 
       <div className="space-y-2">
         <Label>Fotos ({photos.length}/3)</Label>
         <div className="grid grid-cols-3 gap-3">
           {photos.map((p, i) => (
-            <div key={i} className="relative aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted">
+            <div
+              key={i}
+              className="relative aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted"
+            >
               {p.url && <img src={p.url} alt="" className="h-full w-full object-cover" />}
               <button
                 type="button"
@@ -239,7 +278,11 @@ export function ProductForm({
           ))}
           {photos.length < 3 && (
             <label className="grid aspect-[4/5] cursor-pointer place-items-center rounded-lg border-2 border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary">
-              {processing ? <Loader2 className="h-6 w-6 animate-spin" /> : <ImagePlus className="h-6 w-6" />}
+              {processing ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <ImagePlus className="h-6 w-6" />
+              )}
               <input
                 type="file"
                 accept="image/*,.heic,.heif"

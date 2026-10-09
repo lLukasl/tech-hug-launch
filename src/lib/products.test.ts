@@ -11,7 +11,16 @@ describe("produtos", () => {
   });
 
   it("monta a mensagem com condição, bateria e preço para o WhatsApp do Bandeirante", () => {
-    const p = { categoria: "celular", nome: "iPhone 13", armazenamento: "128 GB", cor: "Azul", marca: "Apple", condicao: "seminovo", bateria: 87, preco: 2500 } as Product;
+    const p = {
+      categoria: "celular",
+      nome: "iPhone 13",
+      armazenamento: "128 GB",
+      cor: "Azul",
+      marca: "Apple",
+      condicao: "seminovo",
+      bateria: 87,
+      preco: 2500,
+    } as Product;
     const msg = interestMessage(p);
     expect(msg).toContain("iPhone 13 128 GB Azul — seminovo — bateria 87%");
     expect(msg).toContain("Preço: R$");

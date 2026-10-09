@@ -74,7 +74,8 @@ export const setMemberActive = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperadmin(context);
-    if (data.userId === context.userId) throw new Error("Você não pode desativar sua própria conta.");
+    if (data.userId === context.userId)
+      throw new Error("Você não pode desativar sua própria conta.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
       .from("user_roles")

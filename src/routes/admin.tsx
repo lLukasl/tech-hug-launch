@@ -10,12 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -165,11 +160,25 @@ function LoginForm() {
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input id="password" type="password" autoComplete={isSetup ? "new-password" : "current-password"} required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            id="password"
+            type="password"
+            autoComplete={isSetup ? "new-password" : "current-password"}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="h-11 w-full" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -182,7 +191,10 @@ function LoginForm() {
 
 function Dashboard({ role, userId }: { role: Role; userId: string }) {
   const qc = useQueryClient();
-  const { data: products, isLoading } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  });
   const [editing, setEditing] = useState<ProductWithUrls | "new" | null>(null);
   const [deleting, setDeleting] = useState<ProductWithUrls | null>(null);
   const [showTeam, setShowTeam] = useState(false);
@@ -228,9 +240,14 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
       ) : (
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <li key={p.id} className="flex gap-3 rounded-xl border border-border bg-card p-3 shadow-card">
+            <li
+              key={p.id}
+              className="flex gap-3 rounded-xl border border-border bg-card p-3 shadow-card"
+            >
               <div className="aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                {p.fotoUrls[0] && <img src={p.fotoUrls[0]} alt="" className="h-full w-full object-cover" />}
+                {p.fotoUrls[0] && (
+                  <img src={p.fotoUrls[0]} alt="" className="h-full w-full object-cover" />
+                )}
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
                 <p className="truncate font-semibold">{fullName(p)}</p>
@@ -246,7 +263,12 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
                   <Button size="sm" variant="ghost" onClick={() => setEditing(p)}>
                     <Pencil className="mr-1 h-4 w-4" /> Editar
                   </Button>
-                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setDeleting(p)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() => setDeleting(p)}
+                  >
                     <Trash2 className="mr-1 h-4 w-4" /> Excluir
                   </Button>
                 </div>
@@ -277,7 +299,9 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir produto</AlertDialogTitle>
-            <AlertDialogDescription>Tem certeza? Esta ação não pode ser desfeita.</AlertDialogDescription>
+            <AlertDialogDescription>
+              Tem certeza? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -289,7 +313,9 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
       {role === "superadmin" && (
         <Dialog open={showTeam} onOpenChange={setShowTeam}>
           <DialogContent>
-            <DialogHeader><DialogTitle>Equipe</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Equipe</DialogTitle>
+            </DialogHeader>
             <TeamManager selfId={userId} />
           </DialogContent>
         </Dialog>
@@ -338,10 +364,15 @@ function TeamManager({ selfId }: { selfId: string }) {
     <div className="space-y-6">
       <ul className="space-y-2">
         {members?.map((m) => (
-          <li key={m.user_id} className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm">
+          <li
+            key={m.user_id}
+            className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"
+          >
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.email}</p>
-              <p className="text-xs text-muted-foreground">{m.role === "superadmin" ? "Superadmin" : "Membro"}</p>
+              <p className="text-xs text-muted-foreground">
+                {m.role === "superadmin" ? "Superadmin" : "Membro"}
+              </p>
             </div>
             {m.user_id !== selfId && (
               <label className="flex items-center gap-2">
@@ -365,8 +396,21 @@ function TeamManager({ selfId }: { selfId: string }) {
       {memberCount < 3 ? (
         <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
           <p className="text-sm font-semibold">Adicionar membro ({memberCount}/3)</p>
-          <Input type="email" placeholder="E-mail" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input type="password" placeholder="Senha (mín. 8 caracteres)" minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            type="email"
+            placeholder="E-mail"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            placeholder="Senha (mín. 8 caracteres)"
+            minLength={8}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <Button type="submit" disabled={busy} className="w-full">
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Criar conta
           </Button>

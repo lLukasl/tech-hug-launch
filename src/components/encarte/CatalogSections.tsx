@@ -19,7 +19,15 @@ import {
 const USED_NOTE =
   "Produto pode apresentar marcas de uso como arranhões na tela ou carcaça. Fotos reais do produto.";
 
-function Header({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+function Header({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+}) {
   return (
     <div className="max-w-2xl">
       <span className="text-sm font-semibold uppercase tracking-wider text-primary">{eyebrow}</span>
@@ -32,10 +40,20 @@ function Header({ eyebrow, title, subtitle }: { eyebrow: string; title: string; 
 function WaButton({ p, className }: { p: ProductWithUrls; className?: string }) {
   const sold = p.status === "vendido";
   return (
-    <Button asChild className={`h-11 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90 ${className ?? ""}`}>
-      <a href={waLink(sold ? soldMessage(p) : interestMessage(p))} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+    <Button
+      asChild
+      className={`h-11 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90 ${className ?? ""}`}
+    >
+      <a
+        href={waLink(sold ? soldMessage(p) : interestMessage(p))}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+      >
         <MessageCircle className="mr-2 h-4 w-4 shrink-0" />
-        <span className="truncate">{sold ? "Produto vendido — perguntar sobre similares" : "Comprar pelo WhatsApp"}</span>
+        <span className="truncate">
+          {sold ? "Produto vendido — perguntar sobre similares" : "Comprar pelo WhatsApp"}
+        </span>
       </a>
     </Button>
   );
@@ -48,7 +66,12 @@ function ProductCard({ p, onOpen }: { p: ProductWithUrls; onOpen: () => void }) 
       <button type="button" onClick={onOpen} className="text-left">
         <div className="relative aspect-[4/5] bg-muted">
           {p.fotoUrls[0] ? (
-            <img src={p.fotoUrls[0]} alt={fullName(p)} loading="lazy" className={`h-full w-full object-cover ${sold ? "opacity-70" : ""}`} />
+            <img
+              src={p.fotoUrls[0]}
+              alt={fullName(p)}
+              loading="lazy"
+              className={`h-full w-full object-cover ${sold ? "opacity-70" : ""}`}
+            />
           ) : (
             <Smartphone className="absolute inset-0 m-auto h-10 w-10 text-muted-foreground" />
           )}
@@ -78,11 +101,21 @@ function ProductCard({ p, onOpen }: { p: ProductWithUrls; onOpen: () => void }) 
   );
 }
 
-function Grid({ items, onOpen, empty }: { items: ProductWithUrls[]; onOpen: (p: ProductWithUrls) => void; empty: string }) {
+function Grid({
+  items,
+  onOpen,
+  empty,
+}: {
+  items: ProductWithUrls[];
+  onOpen: (p: ProductWithUrls) => void;
+  empty: string;
+}) {
   if (!items.length) return <p className="mt-8 text-sm text-muted-foreground">{empty}</p>;
   return (
     <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-      {items.map((p) => <ProductCard key={p.id} p={p} onOpen={() => onOpen(p)} />)}
+      {items.map((p) => (
+        <ProductCard key={p.id} p={p} onOpen={() => onOpen(p)} />
+      ))}
     </div>
   );
 }
@@ -106,25 +139,49 @@ export function CatalogSections() {
   const usados = products.filter((p) => p.categoria === "celular" && p.condicao !== "novo");
 
   if (isLoading)
-    return <div className="py-20"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></div>;
+    return (
+      <div className="py-20">
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
 
   return (
     <>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <Header eyebrow="Carregadores, cabos e fones" title="Acessórios" subtitle="Toque no produto para ver fotos e detalhes." />
+        <Header
+          eyebrow="Carregadores, cabos e fones"
+          title="Acessórios"
+          subtitle="Toque no produto para ver fotos e detalhes."
+        />
         <Grid items={acc} onOpen={setOpen} empty="Nenhum acessório no encarte no momento." />
       </section>
 
       <section className="bg-secondary/40 py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Header eyebrow="Aparelhos novos" title="Telefones Novos" subtitle="Modelos novos disponíveis no encarte digital." />
-          <Grid items={novos} onOpen={setOpen} empty="Nenhum telefone novo no encarte no momento." />
+          <Header
+            eyebrow="Aparelhos novos"
+            title="Telefones Novos"
+            subtitle="Modelos novos disponíveis no encarte digital."
+          />
+          <Grid
+            items={novos}
+            onOpen={setOpen}
+            empty="Nenhum telefone novo no encarte no momento."
+          />
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <Header eyebrow="Semi-novos e usados" title="Telefones Usados / Semi-novos" subtitle="Organizados por faixa de preço." />
-        {usados.length === 0 && <p className="mt-8 text-sm text-muted-foreground">Nenhum aparelho usado no encarte no momento.</p>}
+        <Header
+          eyebrow="Semi-novos e usados"
+          title="Telefones Usados / Semi-novos"
+          subtitle="Organizados por faixa de preço."
+        />
+        {usados.length === 0 && (
+          <p className="mt-8 text-sm text-muted-foreground">
+            Nenhum aparelho usado no encarte no momento.
+          </p>
+        )}
         {PRICE_RANGES.map((r) => {
           const items = usados.filter((p) => inRange(p.preco, r));
           if (!items.length) return null;
@@ -146,7 +203,12 @@ export function CatalogSections() {
               </DialogHeader>
               <div className="flex snap-x gap-3 overflow-x-auto">
                 {open.fotoUrls.map((u, i) => (
-                  <img key={i} src={u} alt={`${fullName(open)} — foto ${i + 1}`} className="aspect-[4/5] w-4/5 shrink-0 snap-center rounded-lg object-cover sm:w-1/2" />
+                  <img
+                    key={i}
+                    src={u}
+                    alt={`${fullName(open)} — foto ${i + 1}`}
+                    className="aspect-[4/5] w-4/5 shrink-0 snap-center rounded-lg object-cover sm:w-1/2"
+                  />
                 ))}
               </div>
               {open.condicao && open.condicao !== "novo" && (
@@ -157,8 +219,14 @@ export function CatalogSections() {
                 <Spec label="Marca" value={open.marca} />
                 <Spec label="Armazenamento" value={open.armazenamento} />
                 <Spec label="Cor" value={open.cor} />
-                <Spec label="Condição" value={open.condicao ? condicaoLabel[open.condicao] : null} />
-                <Spec label="Saúde da bateria" value={open.bateria != null ? `${open.bateria}%` : null} />
+                <Spec
+                  label="Condição"
+                  value={open.condicao ? condicaoLabel[open.condicao] : null}
+                />
+                <Spec
+                  label="Saúde da bateria"
+                  value={open.bateria != null ? `${open.bateria}%` : null}
+                />
                 <Spec label="Compatível com" value={open.compativel} />
                 <Spec label="Status" value={open.status === "vendido" ? "Vendido" : "Disponível"} />
               </dl>

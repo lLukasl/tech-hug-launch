@@ -53,12 +53,7 @@ const accessories: { icon: LucideIcon; name: string }[] = [
   { icon: Headphones, name: "Fones de Ouvido Bluetooth" },
 ];
 
-const priceRanges = [
-  "R$ 300 a R$ 400",
-  "R$ 400 a R$ 500",
-  "R$ 500 a R$ 900",
-  "Acima de R$ 900",
-];
+const priceRanges = ["R$ 300 a R$ 400", "R$ 400 a R$ 500", "R$ 500 a R$ 900", "Acima de R$ 900"];
 
 function CatalogCard({
   icon: Icon,
@@ -78,10 +73,7 @@ function CatalogCard({
       </span>
       <h3 className="mt-5 text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
-      <Button
-        asChild
-        className="mt-6 h-11 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90"
-      >
+      <Button asChild className="mt-6 h-11 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90">
         <a href={buyLink(waItem)} target="_blank" rel="noopener noreferrer">
           <MessageCircle className="mr-2 h-4 w-4" />
           Saiba mais
@@ -102,9 +94,7 @@ function SectionHeader({
 }) {
   return (
     <div className="max-w-2xl">
-      <span className="text-sm font-semibold uppercase tracking-wider text-primary">
-        {eyebrow}
-      </span>
+      <span className="text-sm font-semibold uppercase tracking-wider text-primary">{eyebrow}</span>
       <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{title}</h2>
       <p className="mt-4 text-muted-foreground">{subtitle}</p>
     </div>
@@ -128,11 +118,7 @@ function EncartePage() {
             asChild
             className="ml-auto hidden h-10 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90 md:inline-flex"
           >
-            <a
-              href={buyLink("encarte digital")}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={buyLink("encarte digital")} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-4 w-4" />
               Falar no WhatsApp
             </a>
@@ -147,12 +133,10 @@ function EncartePage() {
             <Tag className="h-3.5 w-3.5" />
             Catálogo
           </span>
-          <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">
-            Encarte Digital
-          </h1>
+          <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">Encarte Digital</h1>
           <p className="mt-4 max-w-2xl text-base text-primary-foreground/80 sm:text-lg">
-            Acessórios, telefones novos e usados. Toque em “Saiba mais” para
-            consultar valores e disponibilidade pelo WhatsApp.
+            Acessórios, telefones novos e usados. Toque em “Saiba mais” para consultar valores e
+            disponibilidade pelo WhatsApp.
           </p>
         </div>
       </section>
@@ -164,14 +148,7 @@ function EncartePage() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <Link to="/" className="flex items-center gap-2">
-              <img
-                src={logo}
-                alt=""
-                width={40}
-                height={40}
-                loading="lazy"
-                className="h-10 w-10"
-              />
+              <img src={logo} alt="" width={40} height={40} loading="lazy" className="h-10 w-10" />
               <span className="font-display text-lg font-bold">Clínica Cell</span>
             </Link>
 
@@ -187,11 +164,7 @@ function EncartePage() {
                 asChild
                 className="h-10 bg-cta text-cta-foreground shadow-cta hover:bg-cta/90"
               >
-                <a
-                  href={buyLink("encarte digital")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={buyLink("encarte digital")} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Falar no WhatsApp
                 </a>
