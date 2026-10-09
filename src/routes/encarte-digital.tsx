@@ -135,7 +135,7 @@ function EncartePage() {
           </span>
           <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">Encarte Digital</h1>
           <p className="mt-4 max-w-2xl text-base text-primary-foreground/80 sm:text-lg">
-            Acessórios, telefones novos e usados. Toque em “Saiba mais” para consultar valores e
+            Acessórios, telefones novos e usados. Toque em um produto para ver fotos e detalhes, e consultar valores e
             disponibilidade pelo WhatsApp.
           </p>
         </div>
