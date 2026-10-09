@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CatalogSections } from "@/components/encarte/CatalogSections";
 
 const logo = "/clinica-cell-logo.jpeg";
 const HOURS = "Seg a Sex: 8h–18h · Sáb: 8h–16h";
@@ -156,64 +157,7 @@ function EncartePage() {
         </div>
       </section>
 
-      {/* Acessórios */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <SectionHeader
-          eyebrow="Carregadores, cabos e fones"
-          title="Acessórios"
-          subtitle="Consulte a disponibilidade do acessório para o modelo do seu aparelho."
-        />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {accessories.map((a) => (
-            <CatalogCard
-              key={a.name}
-              icon={a.icon}
-              title={a.name}
-              desc="Consulta de valores e disponibilidade pelo WhatsApp."
-              waItem={a.name}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Telefones Novos */}
-      <section className="bg-secondary/40 py-16 lg:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Aparelhos novos"
-            title="Telefones Novos"
-            subtitle="Consulte os modelos e valores disponíveis no encarte digital."
-          />
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <CatalogCard
-              icon={Smartphone}
-              title="Telefones Novos"
-              desc="Categoria para aparelhos novos. Consulte modelos e valores pelo WhatsApp."
-              waItem="Telefones Novos"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Telefones Usados / Semi-novos */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <SectionHeader
-          eyebrow="Semi-novos e usados"
-          title="Telefones Usados / Semi-novos"
-          subtitle="Escolha a faixa de preço e consulte os aparelhos disponíveis."
-        />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {priceRanges.map((range) => (
-            <CatalogCard
-              key={range}
-              icon={Tag}
-              title={range}
-              desc="Telefones usados e semi-novos nesta faixa de preço."
-              waItem={`Telefones usados — ${range}`}
-            />
-          ))}
-        </div>
-      </section>
+      <CatalogSections />
 
       {/* Footer */}
       <footer className="border-t border-border bg-primary text-primary-foreground">
