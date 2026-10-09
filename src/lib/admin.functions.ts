@@ -38,7 +38,7 @@ export const hasSuperadmin = createServerFn({ method: "GET" }).handler(async () 
   return { exists: (count ?? 0) > 0 };
 });
 
-async function assertSuperadmin(context: { supabase: any; userId: string }) {
+async function assertSuperadmin(context: { supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "superadmin" }) => PromiseLike<{ data: unknown }> }; userId: string }) {
   const { data } = await context.supabase.rpc("has_role", {
     _user_id: context.userId,
     _role: "superadmin",
