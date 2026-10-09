@@ -38,7 +38,7 @@ export const hasSuperadmin = createServerFn({ method: "GET" }).handler(async () 
   return { exists: (count ?? 0) > 0 };
 });
 
-async function assertSuperadmin(context: { supabase: any; userId: string }) {
+async function assertSuperadmin(context: { supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "superadmin" }) => PromiseLike<{ data: unknown }> }; userId: string }) {
   const { data } = await context.supabase.rpc("has_role", {
     _user_id: context.userId,
     _role: "superadmin",
@@ -74,7 +74,8 @@ export const setMemberActive = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperadmin(context);
-    if (data.userId === context.userId) throw new Error("Você não pode desativar sua própria conta.");
+    if (data.userId === context.userId)
+      throw new Error("Você não pode desativar sua própria conta.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
       .from("user_roles")

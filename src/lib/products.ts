@@ -29,8 +29,30 @@ export const WHATSAPP_BANDEIRANTE = "5561992337476";
 export const BRANDS = ["Apple", "Samsung", "Xiaomi", "Motorola", "Realme", "Outra"];
 export const STORAGES = ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB"];
 
-const PHONE_WORDS = ["iphone", "galaxy", "redmi", "pixel", "poco", "moto g", "moto e", "edge", "realme", "xiaomi"];
-const ACC_WORDS = ["capa", "capinha", "pelicula", "película", "carregador", "fone", "suporte", "cabo", "fonte", "adaptador"];
+const PHONE_WORDS = [
+  "iphone",
+  "galaxy",
+  "redmi",
+  "pixel",
+  "poco",
+  "moto g",
+  "moto e",
+  "edge",
+  "realme",
+  "xiaomi",
+];
+const ACC_WORDS = [
+  "capa",
+  "capinha",
+  "pelicula",
+  "película",
+  "carregador",
+  "fone",
+  "suporte",
+  "cabo",
+  "fonte",
+  "adaptador",
+];
 
 /** Sugere a categoria a partir do texto digitado; null se não identificar. */
 export function guessCategoria(text: string): Categoria | null {
@@ -49,7 +71,9 @@ export const condicaoLabel: Record<Condicao, string> = {
 export const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function fullName(p: Pick<Product, "categoria" | "nome" | "armazenamento" | "cor" | "marca">) {
+export function fullName(
+  p: Pick<Product, "categoria" | "nome" | "armazenamento" | "cor" | "marca">,
+) {
   if (p.categoria === "acessorio") return [p.nome, p.marca].filter(Boolean).join(" — ");
   return [p.nome, p.armazenamento, p.cor].filter(Boolean).join(" ");
 }

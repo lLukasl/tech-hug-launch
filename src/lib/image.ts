@@ -12,7 +12,9 @@ export async function processPhoto(file: File): Promise<Blob> {
       source = Array.isArray(out) ? out[0] : out;
     }
   }
-  const bitmap = await createImageBitmap(source, { imageOrientation: "from-image" } as ImageBitmapOptions);
+  const bitmap = await createImageBitmap(source, {
+    imageOrientation: "from-image",
+  } as ImageBitmapOptions);
   const ratio = 4 / 5;
   let sw = bitmap.width;
   let sh = bitmap.height;
@@ -36,6 +38,10 @@ export async function processPhoto(file: File): Promise<Blob> {
   ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, outW, outH);
   bitmap.close();
   return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Falha ao processar imagem"))), "image/jpeg", 0.8),
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Falha ao processar imagem"))),
+      "image/jpeg",
+      0.8,
+    ),
   );
 }
