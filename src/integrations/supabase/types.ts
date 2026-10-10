@@ -65,6 +65,81 @@ export type Database = {
         }
         Relationships: []
       }
+      service_orders: {
+        Row: {
+          assinatura_cliente: string | null
+          assinatura_loja: string | null
+          ciente_termos: boolean
+          cliente_nome: string
+          cliente_telefone: string
+          cor: string | null
+          created_at: string
+          criado_por: string | null
+          defeito: string | null
+          garantia_dias: number
+          id: string
+          itens: Json
+          loja: string
+          marca: string | null
+          modelo: string | null
+          nao_deixou: string[]
+          numero: number
+          observacoes: string | null
+          quantidade: number
+          status: string
+          termos_garantia: string | null
+          tipo_aparelho: string
+        }
+        Insert: {
+          assinatura_cliente?: string | null
+          assinatura_loja?: string | null
+          ciente_termos?: boolean
+          cliente_nome: string
+          cliente_telefone: string
+          cor?: string | null
+          created_at?: string
+          criado_por?: string | null
+          defeito?: string | null
+          garantia_dias?: number
+          id?: string
+          itens?: Json
+          loja: string
+          marca?: string | null
+          modelo?: string | null
+          nao_deixou?: string[]
+          numero?: number
+          observacoes?: string | null
+          quantidade?: number
+          status?: string
+          termos_garantia?: string | null
+          tipo_aparelho?: string
+        }
+        Update: {
+          assinatura_cliente?: string | null
+          assinatura_loja?: string | null
+          ciente_termos?: boolean
+          cliente_nome?: string
+          cliente_telefone?: string
+          cor?: string | null
+          created_at?: string
+          criado_por?: string | null
+          defeito?: string | null
+          garantia_dias?: number
+          id?: string
+          itens?: Json
+          loja?: string
+          marca?: string | null
+          modelo?: string | null
+          nao_deixou?: string[]
+          numero?: number
+          observacoes?: string | null
+          quantidade?: number
+          status?: string
+          termos_garantia?: string | null
+          tipo_aparelho?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           active: boolean

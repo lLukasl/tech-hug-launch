@@ -52,11 +52,6 @@ export const createMember = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuperadmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin
-      .from("user_roles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "member");
-    if ((count ?? 0) >= 3) throw new Error("Limite de 3 membros atingido.");
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
