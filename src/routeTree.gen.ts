@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as EncarteDigitalRouteImport } from './routes/encarte-digital'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OsIdRouteImport } from './routes/os.$id'
 
 const EncarteDigitalRoute = EncarteDigitalRouteImport.update({
   id: '/encarte-digital',
@@ -28,35 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OsIdRoute = OsIdRouteImport.update({
+  id: '/os/$id',
+  path: '/os/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/os/$id': typeof OsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/os/$id': typeof OsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/os/$id': typeof OsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/encarte-digital'
+  fullPaths: '/' | '/admin' | '/encarte-digital' | '/os/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/encarte-digital'
-  id: '__root__' | '/' | '/admin' | '/encarte-digital'
+  to: '/' | '/admin' | '/encarte-digital' | '/os/$id'
+  id: '__root__' | '/' | '/admin' | '/encarte-digital' | '/os/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   EncarteDigitalRoute: typeof EncarteDigitalRoute
+  OsIdRoute: typeof OsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/os/$id': {
+      id: '/os/$id'
+      path: '/os/$id'
+      fullPath: '/os/$id'
+      preLoaderRoute: typeof OsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   EncarteDigitalRoute: EncarteDigitalRoute,
+  OsIdRoute: OsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -22,6 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { ServiceOrders } from "@/components/admin/ServiceOrders";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHOTO_BUCKET,
   condicaoLabel,
@@ -117,7 +119,20 @@ function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {state === "loading" && <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />}
         {state === "out" && <LoginForm />}
-        {typeof state === "object" && <Dashboard role={state.role} userId={state.userId} />}
+        {typeof state === "object" && (
+          <Tabs defaultValue="produtos">
+            <TabsList className="mb-6">
+              <TabsTrigger value="produtos">Produtos</TabsTrigger>
+              <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
+            </TabsList>
+            <TabsContent value="produtos">
+              <Dashboard role={state.role} userId={state.userId} />
+            </TabsContent>
+            <TabsContent value="os">
+              <ServiceOrders userId={state.userId} />
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
     </div>
   );
@@ -393,31 +408,27 @@ function TeamManager({ selfId }: { selfId: string }) {
           </li>
         ))}
       </ul>
-      {memberCount < 3 ? (
-        <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
-          <p className="text-sm font-semibold">Adicionar membro ({memberCount}/3)</p>
-          <Input
-            type="email"
-            placeholder="E-mail"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input
-            type="password"
-            placeholder="Senha (mín. 8 caracteres)"
-            minLength={8}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button type="submit" disabled={busy} className="w-full">
-            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Criar conta
-          </Button>
-        </form>
-      ) : (
-        <p className="text-sm text-muted-foreground">Limite de 3 membros atingido.</p>
-      )}
+      <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
+        <p className="text-sm font-semibold">Adicionar membro ({memberCount} cadastrados)</p>
+        <Input
+          type="email"
+          placeholder="E-mail"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          type="password"
+          placeholder="Senha (mín. 8 caracteres)"
+          minLength={8}
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit" disabled={busy} className="w-full">
+          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Criar conta
+        </Button>
+      </form>
     </div>
   );
 }
