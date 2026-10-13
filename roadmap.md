@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Admin: equipe sem limite de membros
-- [ ] Aba Ordens de Serviço (formulário, itens, garantia, assinaturas, status)
-- [ ] Impressão/PDF da OS
-- [ ] Enviar link da OS pelo WhatsApp da unidade escolhida
+- [x] Admin: equipe sem limite de membros
+- [x] Aba Ordens de Serviço
+- [x] Impressão/PDF da OS
+- [x] Enviar link da OS pelo WhatsApp da unidade escolhida
