@@ -15,6 +15,13 @@
       "when": 1791631435884,
       "tag": "0001_service_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791925666862,
+      "tag": "0002_financeiro_caixa_gerente",
+      "breakpoints": true
     }
   ]
 }

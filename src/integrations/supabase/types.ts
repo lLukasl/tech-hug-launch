@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      cash_sessions: {
+        Row: {
+          aberto_em: string
+          aberto_por: string | null
+          data: string
+          dinheiro_contado: number | null
+          fechado_em: string | null
+          fechado_por: string | null
+          foto_maquininha: string | null
+          id: string
+          loja: string
+          observacoes: string | null
+          status: string
+          troco_inicial: number
+        }
+        Insert: {
+          aberto_em?: string
+          aberto_por?: string | null
+          data?: string
+          dinheiro_contado?: number | null
+          fechado_em?: string | null
+          fechado_por?: string | null
+          foto_maquininha?: string | null
+          id?: string
+          loja: string
+          observacoes?: string | null
+          status?: string
+          troco_inicial?: number
+        }
+        Update: {
+          aberto_em?: string
+          aberto_por?: string | null
+          data?: string
+          dinheiro_contado?: number | null
+          fechado_em?: string | null
+          fechado_por?: string | null
+          foto_maquininha?: string | null
+          id?: string
+          loja?: string
+          observacoes?: string | null
+          status?: string
+          troco_inicial?: number
+        }
+        Relationships: []
+      }
+      cash_withdrawals: {
+        Row: {
+          created_at: string
+          criado_por: string
+          criado_por_email: string | null
+          id: string
+          motivo: string
+          session_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          criado_por: string
+          criado_por_email?: string | null
+          id?: string
+          motivo: string
+          session_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          criado_por_email?: string | null
+          id?: string
+          motivo?: string
+          session_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_withdrawals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           armazenamento: string | null
@@ -64,6 +147,59 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      sales: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          loja: string
+          origem: string
+          pagamentos: Json
+          product_id: string | null
+          service_order_id: string | null
+          session_id: string
+          total: number
+          vendedor_email: string | null
+          vendedor_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          loja: string
+          origem?: string
+          pagamentos?: Json
+          product_id?: string | null
+          service_order_id?: string | null
+          session_id: string
+          total?: number
+          vendedor_email?: string | null
+          vendedor_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          loja?: string
+          origem?: string
+          pagamentos?: Json
+          product_id?: string | null
+          service_order_id?: string | null
+          session_id?: string
+          total?: number
+          vendedor_email?: string | null
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_orders: {
         Row: {
@@ -179,10 +315,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      session_totals: { Args: { _session_id: string }; Returns: Json }
     }
     Enums: {
-      app_role: "superadmin" | "member"
+      app_role: "superadmin" | "member" | "gerente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -310,7 +448,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["superadmin", "member"],
+      app_role: ["superadmin", "member", "gerente"],
     },
   },
 } as const
