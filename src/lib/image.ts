@@ -1,5 +1,5 @@
 /** Recorta em 4:5 (centro), redimensiona p/ máx 800px de largura e comprime (qualidade 80%). */
-export async function processPhoto(file: File): Promise<Blob> {
+export async function processPhoto(file: File, crop = true): Promise<Blob> {
   let source: Blob = file;
   const isHeic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
   if (isHeic) {
@@ -15,7 +15,7 @@ export async function processPhoto(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(source, {
     imageOrientation: "from-image",
   } as ImageBitmapOptions);
-  const ratio = 4 / 5;
+  const ratio = crop ? 4 / 5 : bitmap.width / bitmap.height;
   let sw = bitmap.width;
   let sh = bitmap.height;
   let sx = 0;

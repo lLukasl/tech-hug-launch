@@ -38,6 +38,11 @@ export const hasSuperadmin = createServerFn({ method: "GET" }).handler(async () 
   return { exists: (count ?? 0) > 0 };
 });
 
+async function assertManager(context: { supabase: { rpc: (fn: "is_manager", args: { _user_id: string }) => PromiseLike<{ data: unknown }> }; userId: string }) {
+  const { data } = await context.supabase.rpc("is_manager", { _user_id: context.userId });
+  if (!data) throw new Error("Acesso negado");
+}
+
 async function assertSuperadmin(context: { supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "superadmin" }) => PromiseLike<{ data: unknown }> }; userId: string }) {
   const { data } = await context.supabase.rpc("has_role", {
     _user_id: context.userId,
@@ -48,9 +53,12 @@ async function assertSuperadmin(context: { supabase: { rpc: (fn: "has_role", arg
 
 export const createMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => credsSchema.parse(d))
+  .inputValidator((d) =>
+    credsSchema.extend({ role: z.enum(["member", "gerente"]).default("member") }).parse(d),
+  )
   .handler(async ({ data, context }) => {
-    await assertSuperadmin(context);
+    if (data.role === "gerente") await assertSuperadmin(context);
+    else await assertManager(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
@@ -60,7 +68,7 @@ export const createMember = createServerFn({ method: "POST" })
     if (error || !created.user) throw new Error(error?.message ?? "Erro ao criar conta");
     await supabaseAdmin
       .from("user_roles")
-      .insert({ user_id: created.user.id, role: "member", email: data.email });
+      .insert({ user_id: created.user.id, role: data.role, email: data.email });
     return { ok: true };
   });
 
@@ -68,15 +76,21 @@ export const setMemberActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertSuperadmin(context);
+    await assertManager(context);
     if (data.userId === context.userId)
       throw new Error("Você não pode desativar sua própria conta.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: target } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    if (!target || target.role === "superadmin") throw new Error("Conta não pode ser alterada.");
+    if (target.role === "gerente") await assertSuperadmin(context);
     await supabaseAdmin
       .from("user_roles")
       .update({ active: data.active })
-      .eq("user_id", data.userId)
-      .eq("role", "member");
+      .eq("user_id", data.userId);
     await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       ban_duration: data.active ? "none" : "876000h",
     });
