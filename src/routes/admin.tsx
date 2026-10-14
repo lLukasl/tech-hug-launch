@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { ServiceOrders } from "@/components/admin/ServiceOrders";
+import { Finance } from "@/components/admin/Finance";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHOTO_BUCKET,
@@ -57,11 +58,11 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Role = "superadmin" | "member";
+type Role = "superadmin" | "gerente" | "member";
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<"loading" | "out" | { userId: string; role: Role }>("loading");
+  const [state, setState] = useState<"loading" | "out" | { userId: string; role: Role; email: string }>("loading");
 
   const resolve = async () => {
     const { data } = await supabase.auth.getUser();
@@ -77,7 +78,7 @@ function AdminPage() {
       navigate({ to: "/", replace: true });
       return;
     }
-    setState({ userId: data.user.id, role: r.role as Role });
+    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "" });
   };
 
   useEffect(() => {
@@ -124,12 +125,16 @@ function AdminPage() {
             <TabsList className="mb-6">
               <TabsTrigger value="produtos">Produtos</TabsTrigger>
               <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
+              <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
             </TabsList>
             <TabsContent value="produtos">
               <Dashboard role={state.role} userId={state.userId} />
             </TabsContent>
             <TabsContent value="os">
               <ServiceOrders userId={state.userId} />
+            </TabsContent>
+            <TabsContent value="financeiro">
+              <Finance userId={state.userId} email={state.email} isManager={state.role !== "member"} />
             </TabsContent>
           </Tabs>
         )}
@@ -145,7 +150,7 @@ function LoginForm() {
   const checkSuper = useServerFn(hasSuperadmin);
   const bootstrap = useServerFn(bootstrapSuperadmin);
   const { data: sa } = useQuery({ queryKey: ["has-superadmin"], queryFn: () => checkSuper() });
-  const isSetup = sa && !sa.exists;
+  const isSetup = sa ? !sa.exists : false;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,7 +242,7 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">Produtos do encarte</h1>
         <div className="ml-auto flex gap-2">
-          {role === "superadmin" && (
+          {role !== "member" && (
             <Button variant="outline" onClick={() => setShowTeam(true)}>
               <Users className="mr-2 h-4 w-4" /> Equipe
             </Button>
@@ -325,13 +330,13 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {role === "superadmin" && (
+      {role !== "member" && (
         <Dialog open={showTeam} onOpenChange={setShowTeam}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Equipe</DialogTitle>
             </DialogHeader>
-            <TeamManager selfId={userId} />
+            <TeamManager selfId={userId} isSuper={role === "superadmin"} />
           </DialogContent>
         </Dialog>
       )}
@@ -339,12 +344,13 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
   );
 }
 
-function TeamManager({ selfId }: { selfId: string }) {
+function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) {
   const qc = useQueryClient();
   const create = useServerFn(createMember);
   const setActive = useServerFn(setMemberActive);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newRole, setNewRole] = useState<"member" | "gerente">("member");
   const [busy, setBusy] = useState(false);
   const { data: members } = useQuery({
     queryKey: ["members"],
@@ -363,7 +369,7 @@ function TeamManager({ selfId }: { selfId: string }) {
     e.preventDefault();
     setBusy(true);
     try {
-      await create({ data: { email, password } });
+      await create({ data: { email, password, role: newRole } });
       toast.success("Conta criada.");
       setEmail("");
       setPassword("");
@@ -386,10 +392,10 @@ function TeamManager({ selfId }: { selfId: string }) {
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.email}</p>
               <p className="text-xs text-muted-foreground">
-                {m.role === "superadmin" ? "Superadmin" : "Membro"}
+                {m.role === "superadmin" ? "Superadmin" : m.role === "gerente" ? "Gerente" : "Vendedor"}
               </p>
             </div>
-            {m.user_id !== selfId && (
+            {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role === "member") && (
               <label className="flex items-center gap-2">
                 <Switch
                   checked={m.active}
@@ -409,7 +415,17 @@ function TeamManager({ selfId }: { selfId: string }) {
         ))}
       </ul>
       <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
-        <p className="text-sm font-semibold">Adicionar membro ({memberCount} cadastrados)</p>
+        <p className="text-sm font-semibold">Adicionar conta ({memberCount} vendedores)</p>
+        {isSuper && (
+          <select
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value as "member" | "gerente")}
+          >
+            <option value="member">Vendedor</option>
+            <option value="gerente">Gerente</option>
+          </select>
+        )}
         <Input
           type="email"
           placeholder="E-mail"
