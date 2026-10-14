@@ -10,12 +10,16 @@ import { ServiceOrderForm } from "@/components/admin/ServiceOrderForm";
 import { units } from "@/lib/units";
 import { OS_STATUS, shareOsLink, unitById, type OsStatus } from "@/lib/service-orders";
 
+const fsel = "h-10 rounded-md border border-input bg-background px-3 text-sm";
 type Row = { id: string; numero: number; created_at: string; loja: string; cliente_nome: string; modelo: string | null; marca: string | null; status: string };
 
 export function ServiceOrders({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [sharing, setSharing] = useState<Row | null>(null);
+  const [fLoja, setFLoja] = useState("");
+  const [fStatus, setFStatus] = useState("");
+  const [q, setQ] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["service-orders"],
     queryFn: async () => {
@@ -44,13 +48,27 @@ export function ServiceOrders({ userId }: { userId: string }) {
         </Button>
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <select className={fsel} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
+          <option value="">Todas as lojas</option>
+          {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
+        </select>
+        <select className={fsel} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+          <option value="">Todos os status</option>
+          {OS_STATUS.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
+        </select>
+        <input className={fsel} placeholder="Buscar nº ou cliente" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+
       {isLoading ? (
         <Loader2 className="mx-auto mt-10 h-6 w-6 animate-spin text-primary" />
       ) : !data?.length ? (
         <p className="mt-10 text-center text-muted-foreground">Nenhuma ordem de serviço ainda.</p>
       ) : (
         <ul className="mt-6 space-y-3">
-          {data.map((o) => (
+          {data
+            .filter((o) => (!fLoja || o.loja === fLoja) && (!fStatus || o.status === fStatus) && (!q || String(o.numero) === q.replace("#", "").trim() || o.cliente_nome.toLowerCase().includes(q.toLowerCase())))
+            .map((o) => (
             <li key={o.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">OS #{o.numero} — {o.cliente_nome}</p>
