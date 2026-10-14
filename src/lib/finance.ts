@@ -23,3 +23,27 @@ export const cashDiff = (contado: number, esperado: number) => r2(contado - espe
 
 export const todaySP = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+export type Periodo = "dia" | "semana" | "mes";
+/** Intervalo [início, fim] (YYYY-MM-DD) do período que contém `hoje`. Semana começa na segunda. */
+export function periodRange(periodo: Periodo, hoje: string): [string, string] {
+  const d = new Date(`${hoje}T12:00:00Z`);
+  const fmt = (x: Date) => x.toISOString().slice(0, 10);
+  if (periodo === "dia") return [hoje, hoje];
+  if (periodo === "semana") {
+    const dow = (d.getUTCDay() + 6) % 7;
+    const ini = new Date(d); ini.setUTCDate(d.getUTCDate() - dow);
+    const fim = new Date(ini); fim.setUTCDate(ini.getUTCDate() + 6);
+    return [fmt(ini), fmt(fim)];
+  }
+  const ini = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  const fim = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
+  return [fmt(ini), fmt(fim)];
+}
+
+/** Soma por forma de pagamento de uma lista de vendas. */
+export function sumByForma(sales: { pagamentos: Pagamento[] }[]) {
+  const out: Record<Forma, number> = { credito: 0, debito: 0, pix: 0, dinheiro: 0 };
+  for (const s of sales) for (const p of s.pagamentos) out[p.forma] = r2(out[p.forma] + (p.valor || 0));
+  return out;
+}

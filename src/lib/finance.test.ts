@@ -12,3 +12,11 @@ describe("finance", () => {
     expect(cashDiff(280, 300)).toBe(-20);
   });
 });
+
+import { periodRange, sumByForma } from "./finance";
+describe("periodRange", () => {
+  it("semana começa na segunda", () => expect(periodRange("semana", "2026-05-14")).toEqual(["2026-05-11", "2026-05-17"]));
+  it("mês inteiro", () => expect(periodRange("mes", "2026-02-10")).toEqual(["2026-02-01", "2026-02-28"]));
+  it("soma por forma", () =>
+    expect(sumByForma([{ pagamentos: [{ forma: "pix", valor: 10 }, { forma: "credito", valor: 5 }] }, { pagamentos: [{ forma: "pix", valor: 2.5 }] }]).pix).toBe(12.5));
+});

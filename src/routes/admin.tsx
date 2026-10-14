@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { ServiceOrders } from "@/components/admin/ServiceOrders";
+import { Sales } from "@/components/admin/Sales";
 import { Finance } from "@/components/admin/Finance";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -125,7 +126,8 @@ function AdminPage() {
             <TabsList className="mb-6">
               <TabsTrigger value="produtos">Produtos</TabsTrigger>
               <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
-              <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+              <TabsTrigger value="vendas">Vendas</TabsTrigger>
+              {state.role !== "member" && <TabsTrigger value="financeiro">Financeiro</TabsTrigger>}
             </TabsList>
             <TabsContent value="produtos">
               <Dashboard role={state.role} userId={state.userId} />
@@ -133,9 +135,14 @@ function AdminPage() {
             <TabsContent value="os">
               <ServiceOrders userId={state.userId} />
             </TabsContent>
-            <TabsContent value="financeiro">
-              <Finance userId={state.userId} email={state.email} isManager={state.role !== "member"} />
+            <TabsContent value="vendas">
+              <Sales userId={state.userId} email={state.email} isManager={state.role !== "member"} />
             </TabsContent>
+            {state.role !== "member" && (
+              <TabsContent value="financeiro">
+                <Finance userId={state.userId} email={state.email} isManager />
+              </TabsContent>
+            )}
           </Tabs>
         )}
       </main>
