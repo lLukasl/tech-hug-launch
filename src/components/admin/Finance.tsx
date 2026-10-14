@@ -80,7 +80,7 @@ export function Finance({ userId, email, isManager }: { userId: string; email: s
   );
 }
 
-function OpenCash({ loja, userId, onDone }: { loja: string; userId: string; onDone: () => void }) {
+export function OpenCash({ loja, userId, onDone }: { loja: string; userId: string; onDone: () => void }) {
   const [troco, setTroco] = useState("");
   const [busy, setBusy] = useState(false);
   const open = async () => {
@@ -105,7 +105,7 @@ function OpenCash({ loja, userId, onDone }: { loja: string; userId: string; onDo
   );
 }
 
-type Session = {
+export type Session = {
   id: string;
   loja: string;
   troco_inicial: number;
@@ -185,10 +185,11 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
       </div>
 
       {totals && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
           {FORMAS.map((f) => (
             <Stat key={f.value} label={f.label} value={formatBRL(Number(totals[f.value]))} />
           ))}
+          <Stat label={`Total do dia (${totals.vendas} vendas)`} value={formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))} />
           <Stat label="Sangrias" value={formatBRL(Number(totals.sangrias))} />
           <Stat label="Dinheiro esperado" value={formatBRL(esperado)} />
         </div>
@@ -274,7 +275,7 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+export function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-3 shadow-card">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -293,7 +294,7 @@ function DiffStat({ diff }: { diff: number }) {
   );
 }
 
-function SaleForm({ session, userId, email, onDone }: { session: Session; userId: string; email: string; onDone: () => void }) {
+export function SaleForm({ session, userId, email, onDone }: { session: Session; userId: string; email: string; onDone: () => void }) {
   const qc = useQueryClient();
   const [origem, setOrigem] = useState<"avulsa" | "produto" | "os">("avulsa");
   const [descricao, setDescricao] = useState("");
