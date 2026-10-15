@@ -217,6 +217,11 @@ export type Database = {
         Row: {
           assinatura_cliente: string | null
           assinatura_loja: string | null
+          cancel_motivo: string | null
+          cancel_obs: string | null
+          cancelado_em: string | null
+          cancelado_por: string | null
+          cancelado_por_email: string | null
           ciente_termos: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -241,6 +246,11 @@ export type Database = {
         Insert: {
           assinatura_cliente?: string | null
           assinatura_loja?: string | null
+          cancel_motivo?: string | null
+          cancel_obs?: string | null
+          cancelado_em?: string | null
+          cancelado_por?: string | null
+          cancelado_por_email?: string | null
           ciente_termos?: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -265,6 +275,11 @@ export type Database = {
         Update: {
           assinatura_cliente?: string | null
           assinatura_loja?: string | null
+          cancel_motivo?: string | null
+          cancel_obs?: string | null
+          cancelado_em?: string | null
+          cancelado_por?: string | null
+          cancelado_por_email?: string | null
           ciente_termos?: boolean
           cliente_nome?: string
           cliente_telefone?: string
@@ -294,6 +309,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          loja: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -302,6 +318,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          loja?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -310,6 +327,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          loja?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -320,6 +338,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_loja: {
+        Args: { _loja: string; _user_id: string }
+        Returns: boolean
+      }
+      can_sell_loja: {
+        Args: { _loja: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -327,12 +353,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_global: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       session_totals: { Args: { _session_id: string }; Returns: Json }
+      user_loja: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
-      app_role: "superadmin" | "member" | "gerente"
+      app_role: "superadmin" | "member" | "gerente" | "supervisor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -460,7 +488,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["superadmin", "member", "gerente"],
+      app_role: ["superadmin", "member", "gerente", "supervisor"],
     },
   },
 } as const
