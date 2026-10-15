@@ -150,10 +150,14 @@ export type Database = {
       }
       sales: {
         Row: {
+          cliente_nome: string | null
+          cliente_telefone: string | null
           created_at: string
           descricao: string
           id: string
+          itens: Json
           loja: string
+          numero: number
           origem: string
           pagamentos: Json
           product_id: string | null
@@ -164,10 +168,14 @@ export type Database = {
           vendedor_id: string
         }
         Insert: {
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
           created_at?: string
           descricao: string
           id?: string
+          itens?: Json
           loja: string
+          numero?: number
           origem?: string
           pagamentos?: Json
           product_id?: string | null
@@ -178,10 +186,14 @@ export type Database = {
           vendedor_id: string
         }
         Update: {
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
           created_at?: string
           descricao?: string
           id?: string
+          itens?: Json
           loja?: string
+          numero?: number
           origem?: string
           pagamentos?: Json
           product_id?: string | null
