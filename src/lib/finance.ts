@@ -47,3 +47,14 @@ export function sumByForma(sales: { pagamentos: Pagamento[] }[]) {
   for (const s of sales) for (const p of s.pagamentos) out[p.forma] = r2(out[p.forma] + (p.valor || 0));
   return out;
 }
+
+export type SaleItem = {
+  tipo: "avulsa" | "produto" | "os";
+  ref?: string | null;
+  descricao: string;
+  quantidade: number;
+  preco_unitario: number;
+};
+
+export const saleItemTotal = (i: SaleItem) => r2(i.quantidade * i.preco_unitario);
+export const saleItemsTotal = (items: SaleItem[]) => r2(items.reduce((s, i) => s + saleItemTotal(i), 0));
