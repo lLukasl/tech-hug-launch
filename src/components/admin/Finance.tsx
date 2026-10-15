@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,10 @@ import {
   expectedCash,
   pagamentosTotal,
   todaySP,
+  saleItemTotal,
+  saleItemsTotal,
   type Pagamento,
+  type SaleItem,
 } from "@/lib/finance";
 
 type Totals = { credito: number; debito: number; pix: number; dinheiro: number; vendas: number; sangrias: number };
@@ -219,6 +222,9 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
                   </p>
                 </div>
                 <span className="font-semibold">{formatBRL(Number(s.total))}</span>
+                <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
+                  <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
+                </Button>
                 {(isManager || (open && s.vendedor_id === userId)) && (
                   <Button
                     size="icon"
@@ -296,15 +302,18 @@ function DiffStat({ diff }: { diff: number }) {
 
 export function SaleForm({ session, userId, email, onDone }: { session: Session; userId: string; email: string; onDone: () => void }) {
   const qc = useQueryClient();
-  const [origem, setOrigem] = useState<"avulsa" | "produto" | "os">("avulsa");
-  const [descricao, setDescricao] = useState("");
-  const [ref, setRef] = useState("");
+  const [itens, setItens] = useState<SaleItem[]>([]);
+  const [add, setAdd] = useState<SaleItem["tipo"]>("avulsa");
+  const [avDesc, setAvDesc] = useState("");
+  const [avQtd, setAvQtd] = useState("1");
+  const [avPreco, setAvPreco] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [pags, setPags] = useState<Pagamento[]>([{ forma: "pix", valor: 0 }]);
   const [busy, setBusy] = useState(false);
 
   const { data: products } = useQuery({
     queryKey: ["sale-products"],
-    enabled: origem === "produto",
     queryFn: async () => {
       const { data } = await supabase.from("products").select("*").eq("status", "disponivel").order("nome");
       return data ?? [];
@@ -312,11 +321,10 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   });
   const { data: orders } = useQuery({
     queryKey: ["sale-os", session.loja],
-    enabled: origem === "os",
     queryFn: async () => {
       const { data } = await supabase
         .from("service_orders")
-        .select("id, numero, cliente_nome, modelo, itens")
+        .select("id, numero, cliente_nome, cliente_telefone, itens")
         .eq("loja", session.loja)
         .neq("status", "entregue")
         .order("numero", { ascending: false });
@@ -324,84 +332,138 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     },
   });
 
-  const pick = (id: string) => {
-    setRef(id);
-    if (origem === "produto") {
-      const p = products?.find((x) => x.id === id);
-      if (p) {
-        setDescricao(fullName(p as never));
-        setPags([{ forma: pags[0]?.forma ?? "pix", valor: Number(p.preco) }]);
-      }
-    } else {
-      const o = orders?.find((x) => x.id === id);
-      if (o) {
-        setDescricao(`OS #${o.numero} — ${o.cliente_nome}`);
-        const itens = (o.itens as { quantidade: number; preco_unitario: number }[]) ?? [];
-        const total = itens.reduce((s, i) => s + i.quantidade * i.preco_unitario, 0);
-        setPags([{ forma: pags[0]?.forma ?? "pix", valor: Math.round(total * 100) / 100 }]);
-      }
-    }
+  const used = new Set(itens.map((i) => i.ref).filter(Boolean));
+  const push = (i: SaleItem) => {
+    const next = [...itens, i];
+    setItens(next);
+    setPags(pags.length === 1 ? [{ ...pags[0], valor: saleItemsTotal(next) }] : pags);
+  };
+  const removeAt = (k: number) => {
+    const next = itens.filter((_, j) => j !== k);
+    setItens(next);
+    if (pags.length === 1) setPags([{ ...pags[0], valor: saleItemsTotal(next) }]);
+  };
+  const pickProduct = (id: string) => {
+    const p = products?.find((x) => x.id === id);
+    if (p) push({ tipo: "produto", ref: p.id, descricao: fullName(p as never), quantidade: 1, preco_unitario: Number(p.preco) });
+  };
+  const pickOs = (id: string) => {
+    const o = orders?.find((x) => x.id === id);
+    if (!o) return;
+    const its = (o.itens as { quantidade: number; preco_unitario: number }[]) ?? [];
+    const total = Math.round(its.reduce((s, i) => s + i.quantidade * i.preco_unitario, 0) * 100) / 100;
+    push({ tipo: "os", ref: o.id, descricao: `OS #${o.numero} — ${o.cliente_nome}`, quantidade: 1, preco_unitario: total });
+    if (!cliente) setCliente(o.cliente_nome);
+    if (!telefone) setTelefone(o.cliente_telefone);
+  };
+  const addAvulsa = () => {
+    if (!avDesc.trim() || !(Number(avPreco) > 0)) return toast.error("Informe descrição e preço.");
+    push({ tipo: "avulsa", descricao: avDesc.trim(), quantidade: Math.max(1, Number(avQtd) || 1), preco_unitario: Number(avPreco) });
+    setAvDesc(""); setAvQtd("1"); setAvPreco("");
   };
 
+  const totalItens = saleItemsTotal(itens);
   const total = pagamentosTotal(pags);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!descricao.trim()) return toast.error("Informe a descrição.");
-    if (total <= 0) return toast.error("Informe o valor.");
-    if (origem !== "avulsa" && !ref) return toast.error("Selecione o item.");
+    if (!itens.length) return toast.error("Adicione pelo menos um item.");
+    if (total !== totalItens) return toast.error(`Pagamento (${formatBRL(total)}) diferente do total dos itens (${formatBRL(totalItens)}).`);
     setBusy(true);
-    const { error } = await supabase.from("sales").insert({
-      session_id: session.id,
-      loja: session.loja,
-      vendedor_id: userId,
-      vendedor_email: email,
-      descricao: descricao.trim(),
-      origem,
-      product_id: origem === "produto" ? ref : null,
-      service_order_id: origem === "os" ? ref : null,
-      pagamentos: pags.filter((p) => p.valor > 0),
-      total,
-    });
-    if (!error && origem === "produto") await supabase.from("products").update({ status: "vendido" }).eq("id", ref);
-    if (!error && origem === "os") await supabase.from("service_orders").update({ status: "entregue" }).eq("id", ref);
+    const prod = itens.find((i) => i.tipo === "produto");
+    const os = itens.find((i) => i.tipo === "os");
+    const { data: sale, error } = await supabase
+      .from("sales")
+      .insert({
+        session_id: session.id,
+        loja: session.loja,
+        vendedor_id: userId,
+        vendedor_email: email,
+        descricao: itens.map((i) => (i.quantidade > 1 ? `${i.quantidade}x ${i.descricao}` : i.descricao)).join(" + "),
+        origem: os ? "os" : prod ? "produto" : "avulsa",
+        product_id: prod?.ref ?? null,
+        service_order_id: os?.ref ?? null,
+        itens: itens as never,
+        cliente_nome: cliente.trim() || null,
+        cliente_telefone: telefone.trim() || null,
+        pagamentos: pags.filter((p) => p.valor > 0),
+        total,
+      })
+      .select("id")
+      .single();
+    if (!error) {
+      const pIds = itens.filter((i) => i.tipo === "produto").map((i) => i.ref!);
+      const oIds = itens.filter((i) => i.tipo === "os").map((i) => i.ref!);
+      if (pIds.length) await supabase.from("products").update({ status: "baixado" }).in("id", pIds);
+      if (oIds.length) await supabase.from("service_orders").update({ status: "entregue" }).in("id", oIds);
+    }
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Venda lançada.");
-    setDescricao("");
-    setRef("");
+    toast.success("Venda lançada.", {
+      action: { label: "Comprovante", onClick: () => window.open(`/comprovante/${sale.id}`, "_blank") },
+    });
+    setItens([]); setCliente(""); setTelefone("");
     setPags([{ forma: "pix", valor: 0 }]);
-    qc.invalidateQueries({ queryKey: ["products"] });
-    qc.invalidateQueries({ queryKey: ["service-orders"] });
-    qc.invalidateQueries({ queryKey: ["sale-products"] });
-    qc.invalidateQueries({ queryKey: ["sale-os"] });
+    ["products", "service-orders", "sale-products", "sale-os", "sales-list"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     onDone();
   };
 
   return (
     <form onSubmit={submit} className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-card">
       <h2 className="font-semibold">Lançar venda</h2>
-      <select className={sel} value={origem} onChange={(e) => { setOrigem(e.target.value as typeof origem); setRef(""); }}>
-        <option value="avulsa">Venda avulsa</option>
-        <option value="produto">Produto do encarte</option>
-        <option value="os">Ordem de serviço</option>
-      </select>
-      {origem === "produto" && (
-        <select className={sel} value={ref} onChange={(e) => pick(e.target.value)}>
-          <option value="">Selecione o produto…</option>
-          {products?.map((p) => (
-            <option key={p.id} value={p.id}>{fullName(p as never)} — {formatBRL(Number(p.preco))}</option>
+
+      {!!itens.length && (
+        <ul className="space-y-1 rounded-lg border border-border p-2 text-sm">
+          {itens.map((i, k) => (
+            <li key={k} className="flex items-center gap-2">
+              <span className="flex-1">{i.quantidade}x {i.descricao}</span>
+              <span className="font-medium">{formatBRL(saleItemTotal(i))}</span>
+              <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeAt(k)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
           ))}
-        </select>
+          <li className="border-t border-border pt-1 text-right font-semibold">Itens: {formatBRL(totalItens)}</li>
+        </ul>
       )}
-      {origem === "os" && (
-        <select className={sel} value={ref} onChange={(e) => pick(e.target.value)}>
-          <option value="">Selecione a OS…</option>
-          {orders?.map((o) => (
-            <option key={o.id} value={o.id}>OS #{o.numero} — {o.cliente_nome}</option>
-          ))}
+
+      <div className="space-y-2 rounded-lg bg-muted/40 p-3">
+        <Label>Adicionar item</Label>
+        <select className={sel} value={add} onChange={(e) => setAdd(e.target.value as SaleItem["tipo"])}>
+          <option value="avulsa">Item avulso</option>
+          <option value="produto">Produto do encarte</option>
+          <option value="os">Ordem de serviço</option>
         </select>
-      )}
-      <Input placeholder="Descrição (ex.: Película 9H)" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+        {add === "produto" && (
+          <select className={sel} value="" onChange={(e) => pickProduct(e.target.value)}>
+            <option value="">Selecione o produto…</option>
+            {products?.filter((p) => !used.has(p.id)).map((p) => (
+              <option key={p.id} value={p.id}>{fullName(p as never)} — {formatBRL(Number(p.preco))}</option>
+            ))}
+          </select>
+        )}
+        {add === "os" && (
+          <select className={sel} value="" onChange={(e) => pickOs(e.target.value)}>
+            <option value="">Selecione a OS…</option>
+            {orders?.filter((o) => !used.has(o.id)).map((o) => (
+              <option key={o.id} value={o.id}>OS #{o.numero} — {o.cliente_nome}</option>
+            ))}
+          </select>
+        )}
+        {add === "avulsa" && (
+          <div className="flex flex-wrap gap-2">
+            <Input className="min-w-40 flex-1" placeholder="Descrição (ex.: Película 9H)" value={avDesc} onChange={(e) => setAvDesc(e.target.value)} />
+            <Input className="w-16" type="number" min="1" value={avQtd} onChange={(e) => setAvQtd(e.target.value)} />
+            <Input className="w-28" type="number" step="0.01" min="0" placeholder="Preço un." value={avPreco} onChange={(e) => setAvPreco(e.target.value)} />
+            <Button type="button" variant="outline" onClick={addAvulsa}><Plus className="h-4 w-4" /></Button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Input placeholder="Nome do cliente (opcional)" value={cliente} onChange={(e) => setCliente(e.target.value)} />
+        <Input placeholder="Telefone (opcional)" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+      </div>
+
       <div className="space-y-2">
         <Label>Pagamento</Label>
         {pags.map((p, i) => (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calculator, Loader2 } from "lucide-react";
+import { Calculator, FileText, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -124,6 +124,9 @@ export function Sales({ userId, email, isManager }: { userId: string; email: str
                 </p>
               </div>
               <span className="font-semibold">{formatBRL(Number(s.total))}</span>
+              <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
+                <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
+              </Button>
             </li>
           ))}
         </ul>

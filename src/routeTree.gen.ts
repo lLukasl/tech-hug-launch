@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as EncarteDigitalRouteImport } from './routes/encarte-digital'
+import { Route as ComprovanteIdRouteImport } from './routes/comprovante.$id'
 import { Route as OsIdRouteImport } from './routes/os.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const EncarteDigitalRoute = EncarteDigitalRouteImport.update({
   path: '/encarte-digital',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComprovanteIdRoute = ComprovanteIdRouteImport.update({
+  id: '/comprovante/$id',
+  path: '/comprovante/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OsIdRoute = OsIdRouteImport.update({
   id: '/os/$id',
   path: '/os/$id',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/comprovante/$id': typeof ComprovanteIdRoute
   '/os/$id': typeof OsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/comprovante/$id': typeof ComprovanteIdRoute
   '/os/$id': typeof OsIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/encarte-digital': typeof EncarteDigitalRoute
+  '/comprovante/$id': typeof ComprovanteIdRoute
   '/os/$id': typeof OsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/encarte-digital' | '/os/$id'
+  fullPaths:
+    '/' | '/admin' | '/encarte-digital' | '/comprovante/$id' | '/os/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/encarte-digital' | '/os/$id'
-  id: '__root__' | '/' | '/admin' | '/encarte-digital' | '/os/$id'
+  to: '/' | '/admin' | '/encarte-digital' | '/comprovante/$id' | '/os/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/encarte-digital'
+    | '/comprovante/$id'
+    | '/os/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   EncarteDigitalRoute: typeof EncarteDigitalRoute
+  ComprovanteIdRoute: typeof ComprovanteIdRoute
   OsIdRoute: typeof OsIdRoute
 }
 
@@ -92,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EncarteDigitalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comprovante/$id': {
+      id: '/comprovante/$id'
+      path: '/comprovante/$id'
+      fullPath: '/comprovante/$id'
+      preLoaderRoute: typeof ComprovanteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/os/$id': {
       id: '/os/$id'
       path: '/os/$id'
@@ -106,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   EncarteDigitalRoute: EncarteDigitalRoute,
+  ComprovanteIdRoute: ComprovanteIdRoute,
   OsIdRoute: OsIdRoute,
 }
 export const routeTree = rootRouteImport
