@@ -20,3 +20,13 @@ describe("periodRange", () => {
   it("soma por forma", () =>
     expect(sumByForma([{ pagamentos: [{ forma: "pix", valor: 10 }, { forma: "credito", valor: 5 }] }, { pagamentos: [{ forma: "pix", valor: 2.5 }] }]).pix).toBe(12.5));
 });
+
+import { saleItemsTotal } from "./finance";
+describe("venda com vários itens", () => {
+  it("soma OS + acessórios extras", () => {
+    expect(saleItemsTotal([
+      { tipo: "os", descricao: "OS #1", quantidade: 1, preco_unitario: 250 },
+      { tipo: "avulsa", descricao: "Película", quantidade: 2, preco_unitario: 29.9 },
+    ])).toBe(309.8);
+  });
+});

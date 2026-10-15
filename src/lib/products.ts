@@ -93,9 +93,11 @@ export const waLink = (msg: string) =>
   `https://wa.me/${WHATSAPP_BANDEIRANTE}?text=${encodeURIComponent(msg)}`;
 
 export async function fetchProducts(): Promise<ProductWithUrls[]> {
+  // "baixado" = saiu pelo caixa; some do encarte.
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .neq("status", "baixado")
     .order("criado_em", { ascending: false });
   if (error) throw error;
   const products = (data ?? []) as unknown as Product[];
