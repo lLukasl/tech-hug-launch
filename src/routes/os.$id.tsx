@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/products";
 import {
   NAO_DEIXOU,
+  AVISO_RISCOS,
+  ESTADO_ENTRADA,
+  RISCOS_ABERTURA,
   OS_STATUS,
   TIPOS_APARELHO,
   itemTotal,

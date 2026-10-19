@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { Download, FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { buildCashCsv, downloadCsv } from "@/lib/cash-export";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,24 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
     onChange();
   };
 
+  const exportCsv = () => {
+    if (!totals) return;
+    const lojaName = units.find((u) => u.id === session.loja)?.name ?? session.loja;
+    const csv = buildCashCsv({
+      data: session.data,
+      loja: lojaName,
+      trocoInicial: Number(session.troco_inicial),
+      totals,
+      esperado,
+      dinheiroContado: session.dinheiro_contado == null ? null : Number(session.dinheiro_contado),
+      status: open ? "Aberto" : "Fechado",
+      sales: (sales ?? []).map((s) => ({ ...s, pagamentos: s.pagamentos as Pagamento[], total: Number(s.total) })),
+      withdrawals: (withdrawals ?? []).map((w) => ({ ...w, valor: Number(w.valor) })),
+      formaLabel,
+    });
+    downloadCsv(csv, `caixa-${session.loja}-${session.data}.csv`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -186,8 +205,13 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {open ? "CAIXA ABERTO" : "CAIXA FECHADO"}
         </span>
         <span className="text-sm text-muted-foreground">Troco inicial: {formatBRL(Number(session.troco_inicial))}</span>
+        {isManager && totals && (
+          <Button size="sm" variant="outline" className="ml-auto" onClick={exportCsv}>
+            <Download className="mr-1 h-4 w-4" /> Exportar caixa (Excel / Sheets)
+          </Button>
+        )}
         {!open && isManager && (
-          <Button size="sm" variant="outline" className="ml-auto" onClick={reopen}>
+          <Button size="sm" variant="outline" onClick={reopen}>
             <Unlock className="mr-1 h-4 w-4" /> Reabrir
           </Button>
         )}
