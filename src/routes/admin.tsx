@@ -377,32 +377,41 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  superadmin: "Superadmin",
+  supervisor: "Supervisor Geral",
+  gerente: "Gerente",
+  member: "Vendedor",
+};
+
 function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) {
   const qc = useQueryClient();
   const create = useServerFn(createMember);
   const setActive = useServerFn(setMemberActive);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newRole, setNewRole] = useState<"member" | "gerente">("member");
+  const [newRole, setNewRole] = useState<"member" | "gerente" | "supervisor">("member");
+  const [newLoja, setNewLoja] = useState(units[0].id);
   const [busy, setBusy] = useState(false);
   const { data: members } = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id, email, role, active")
+        .select("user_id, email, role, active, loja")
         .order("created_at");
       if (error) throw error;
       return data;
     },
   });
-  const memberCount = members?.filter((m) => m.role === "member").length ?? 0;
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await create({ data: { email, password, role: newRole } });
+      await create({
+        data: { email, password, role: newRole, loja: newRole === "supervisor" ? null : newLoja },
+      });
       toast.success("Conta criada.");
       setEmail("");
       setPassword("");
@@ -425,7 +434,8 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.email}</p>
               <p className="text-xs text-muted-foreground">
-                {m.role === "superadmin" ? "Superadmin" : m.role === "gerente" ? "Gerente" : "Vendedor"}
+                {ROLE_LABEL[m.role] ?? m.role}
+                {m.loja && ` · ${units.find((u) => u.id === m.loja)?.shortName ?? m.loja}`}
               </p>
             </div>
             {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role === "member") && (
@@ -448,15 +458,27 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
         ))}
       </ul>
       <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
-        <p className="text-sm font-semibold">Adicionar conta ({memberCount} vendedores)</p>
+        <p className="text-sm font-semibold">Adicionar conta</p>
         {isSuper && (
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value as "member" | "gerente")}
+            onChange={(e) => setNewRole(e.target.value as "member" | "gerente" | "supervisor")}
           >
             <option value="member">Vendedor</option>
             <option value="gerente">Gerente</option>
+            <option value="supervisor">Supervisor Geral (acesso a todas as lojas)</option>
+          </select>
+        )}
+        {newRole !== "supervisor" && (
+          <select
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={newLoja}
+            onChange={(e) => setNewLoja(e.target.value)}
+          >
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
           </select>
         )}
         <Input
