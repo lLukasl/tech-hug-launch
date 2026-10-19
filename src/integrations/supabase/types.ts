@@ -222,6 +222,7 @@ export type Database = {
           cancelado_em: string | null
           cancelado_por: string | null
           cancelado_por_email: string | null
+          ciente_riscos: boolean
           ciente_termos: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -229,6 +230,7 @@ export type Database = {
           created_at: string
           criado_por: string | null
           defeito: string | null
+          estado_entrada: string
           garantia_dias: number
           id: string
           itens: Json
@@ -239,6 +241,7 @@ export type Database = {
           numero: number
           observacoes: string | null
           quantidade: number
+          riscos: string[]
           status: string
           termos_garantia: string | null
           tipo_aparelho: string
@@ -251,6 +254,7 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cancelado_por_email?: string | null
+          ciente_riscos?: boolean
           ciente_termos?: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -258,6 +262,7 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           defeito?: string | null
+          estado_entrada?: string
           garantia_dias?: number
           id?: string
           itens?: Json
@@ -268,6 +273,7 @@ export type Database = {
           numero?: number
           observacoes?: string | null
           quantidade?: number
+          riscos?: string[]
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
@@ -280,6 +286,7 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cancelado_por_email?: string | null
+          ciente_riscos?: boolean
           ciente_termos?: boolean
           cliente_nome?: string
           cliente_telefone?: string
@@ -287,6 +294,7 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           defeito?: string | null
+          estado_entrada?: string
           garantia_dias?: number
           id?: string
           itens?: Json
@@ -297,6 +305,7 @@ export type Database = {
           numero?: number
           observacoes?: string | null
           quantidade?: number
+          riscos?: string[]
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
