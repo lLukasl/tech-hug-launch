@@ -7,4 +7,4 @@
 - [x] Papel Gerente
 - [x] Venda com vários itens, comprovante PDF, baixa automática no encarte e OS
 - [x] Lojas por vendedor/gerente, supervisor geral, cancelamento de OS com justificativa
-- [ ] Total negociado com desconto em Vendas e Caixa, pagamentos e comprovante
+- [x] Total negociado com desconto em Vendas e Caixa, pagamentos e comprovante
