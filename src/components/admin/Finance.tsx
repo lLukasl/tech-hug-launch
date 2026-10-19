@@ -198,7 +198,10 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {FORMAS.map((f) => (
             <Stat key={f.value} label={f.label} value={formatBRL(Number(totals[f.value]))} />
           ))}
-          <Stat label={`Total do dia (${totals.vendas} vendas)`} value={formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))} />
+          <div className="rounded-xl bg-cta p-3 text-cta-foreground shadow-card">
+            <p className="text-xs opacity-90">{`Total do dia (${totals.vendas} vendas)`}</p>
+            <p className="font-display text-lg font-bold">{formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))}</p>
+          </div>
           <Stat label="Sangrias" value={formatBRL(Number(totals.sangrias))} />
           <Stat label="Dinheiro esperado" value={formatBRL(esperado)} />
         </div>
