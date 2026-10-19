@@ -41,6 +41,23 @@ export const NAO_DEIXOU = [
   { value: "gaveta_chip", label: "Gaveta de chip" },
 ];
 
+export const ESTADO_ENTRADA = [
+  { value: "ligando", label: "Ligando normalmente" },
+  { value: "desligado", label: "Desligado / não liga" },
+  { value: "liquido", label: "Teve contato com líquido ou umidade" },
+];
+
+export const RISCOS_ABERTURA = [
+  { value: "sem_teste", label: "Não foi possível testar câmeras, som, rede, biometria e sensores antes da abertura" },
+  { value: "tela_fragil", label: "Tela já trincada/fragilizada pode danificar durante a abertura" },
+  { value: "carcaca", label: "Carcaça ou chassi empenado/amassado" },
+  { value: "oxidacao", label: "Suspeita de oxidação interna" },
+  { value: "bateria_estufada", label: "Bateria estufada ou desgastada" },
+  { value: "reparo_anterior", label: "Sinais de reparo anterior por terceiros" },
+];
+
+export const AVISO_RISCOS = `Abrir um aparelho pode revelar ou desencadear falhas em outros componentes além do serviço contratado (ex.: tela, flex, botões, câmeras, biometria, bateria), principalmente em aparelhos que sofreram quedas, contato com líquidos ou reparos anteriores. Quando o aparelho dá entrada DESLIGADO ou sem funcionar, não é possível testar suas funções antes do serviço. Nesses casos, a Clínica Cell não se responsabiliza por defeitos ocultos ou pré-existentes constatados após a abertura. Qualquer novo defeito encontrado será informado ao cliente antes de qualquer cobrança adicional.`;
+
 /** 7 dias: bateria, pilha, carregador e fone de ouvido. Demais serviços: 30–120 dias. */
 export const GARANTIA_OPCOES = [
   { value: 7, label: "7 dias (bateria, pilha, carregador, fone de ouvido)" },
