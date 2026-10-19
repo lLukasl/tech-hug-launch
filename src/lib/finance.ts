@@ -58,3 +58,9 @@ export type SaleItem = {
 
 export const saleItemTotal = (i: SaleItem) => r2(i.quantidade * i.preco_unitario);
 export const saleItemsTotal = (items: SaleItem[]) => r2(items.reduce((s, i) => s + saleItemTotal(i), 0));
+
+export function salePricing(subtotal: number, finalTotal: number) {
+  const valid = Number.isFinite(finalTotal) && Number.isFinite(subtotal)
+    && finalTotal > 0 && finalTotal <= subtotal;
+  return { total: r2(finalTotal), discount: valid ? r2(subtotal - finalTotal) : 0, valid };
+}

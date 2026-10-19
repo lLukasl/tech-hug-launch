@@ -6,4 +6,5 @@
 - [x] Financeiro: caixa por loja, vendas, sangrias, fechamento com foto
 - [x] Papel Gerente
 - [x] Venda com vários itens, comprovante PDF, baixa automática no encarte e OS
-- [ ] Lojas por vendedor/gerente, supervisor geral, exclusão de OS com justificativa (aguardando confirmação)
+- [x] Lojas por vendedor/gerente, supervisor geral, cancelamento de OS com justificativa
+- [ ] Total negociado com desconto em Vendas e Caixa, pagamentos e comprovante
