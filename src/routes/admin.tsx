@@ -26,6 +26,7 @@ import { ServiceOrders, OsAudit } from "@/components/admin/ServiceOrders";
 import { Sales } from "@/components/admin/Sales";
 import { Finance } from "@/components/admin/Finance";
 import { units } from "@/lib/units";
+import { Docs } from "@/components/admin/Docs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHOTO_BUCKET,
@@ -125,13 +126,17 @@ function AdminPage() {
         {state === "out" && <LoginForm />}
         {typeof state === "object" && (
           <Tabs defaultValue="produtos">
-            <TabsList className="mb-6">
+            <TabsList className="mb-6 h-auto flex-wrap">
               <TabsTrigger value="produtos">Produtos</TabsTrigger>
               <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
               <TabsTrigger value="vendas">Vendas</TabsTrigger>
               {state.role !== "member" && <TabsTrigger value="financeiro">Financeiro</TabsTrigger>}
               {state.role !== "member" && <TabsTrigger value="auditoria">Auditoria</TabsTrigger>}
+              <TabsTrigger value="ajuda">Ajuda</TabsTrigger>
             </TabsList>
+            <TabsContent value="ajuda">
+              <Docs role={state.role} />
+            </TabsContent>
             <TabsContent value="produtos">
               <Dashboard role={state.role} userId={state.userId} />
             </TabsContent>
