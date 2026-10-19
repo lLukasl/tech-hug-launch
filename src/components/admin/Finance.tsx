@@ -26,9 +26,9 @@ type Totals = { credito: number; debito: number; pix: number; dinheiro: number; 
 const sel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 const formaLabel = (f: string) => FORMAS.find((x) => x.value === f)?.label ?? f;
 
-export function Finance({ userId, email, isManager }: { userId: string; email: string; isManager: boolean }) {
+export function Finance({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
   const qc = useQueryClient();
-  const [loja, setLoja] = useState(units[0].id);
+  const [loja, setLoja] = useState(isGlobal ? units[0].id : (userLoja ?? units[0].id));
   const [data, setData] = useState(todaySP());
   const isToday = data === todaySP();
   const key = ["cash", loja, data];
@@ -54,11 +54,17 @@ export function Finance({ userId, email, isManager }: { userId: string; email: s
         <h1 className="mr-auto text-2xl font-bold">Financeiro · Caixa</h1>
         <div className="space-y-1">
           <Label>Loja</Label>
-          <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.shortName}</option>
-            ))}
-          </select>
+          {isGlobal ? (
+            <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>{u.shortName}</option>
+              ))}
+            </select>
+          ) : (
+            <p className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
+              {units.find((u) => u.id === loja)?.shortName ?? loja}
+            </p>
+          )}
         </div>
         {isManager && (
           <div className="space-y-1">
@@ -192,7 +198,10 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {FORMAS.map((f) => (
             <Stat key={f.value} label={f.label} value={formatBRL(Number(totals[f.value]))} />
           ))}
-          <Stat label={`Total do dia (${totals.vendas} vendas)`} value={formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))} />
+          <div className="rounded-xl bg-cta p-3 text-cta-foreground shadow-card">
+            <p className="text-xs opacity-90">{`Total do dia (${totals.vendas} vendas)`}</p>
+            <p className="font-display text-lg font-bold">{formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))}</p>
+          </div>
           <Stat label="Sangrias" value={formatBRL(Number(totals.sangrias))} />
           <Stat label="Dinheiro esperado" value={formatBRL(esperado)} />
         </div>

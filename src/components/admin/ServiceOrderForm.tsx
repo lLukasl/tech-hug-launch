@@ -24,10 +24,10 @@ import {
 const selectCls =
   "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
-export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (id: string) => void }) {
+export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userId: string; userLoja?: string | null; isGlobal?: boolean; onDone: (id: string) => void }) {
   const [now] = useState(() => new Date());
   const [f, setF] = useState({
-    loja: units[0].id,
+    loja: isGlobal ? units[0].id : (userLoja ?? units[0].id),
     cliente_nome: "",
     cliente_telefone: "",
     tipo_aparelho: "celular",
@@ -85,11 +85,17 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label>Loja</Label>
-          <select className={selectCls} value={f.loja} onChange={(e) => set("loja", e.target.value)}>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
+          {isGlobal ? (
+            <select className={selectCls} value={f.loja} onChange={(e) => set("loja", e.target.value)}>
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          ) : (
+            <p className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
+              {units.find((u) => u.id === f.loja)?.name ?? f.loja}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label>Nome do cliente</Label>

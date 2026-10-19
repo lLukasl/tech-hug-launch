@@ -22,9 +22,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { ServiceOrders } from "@/components/admin/ServiceOrders";
+import { ServiceOrders, OsAudit } from "@/components/admin/ServiceOrders";
 import { Sales } from "@/components/admin/Sales";
 import { Finance } from "@/components/admin/Finance";
+import { units } from "@/lib/units";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHOTO_BUCKET,
@@ -59,18 +60,19 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Role = "superadmin" | "gerente" | "member";
+type Role = "superadmin" | "gerente" | "member" | "supervisor";
+type Session = { userId: string; role: Role; email: string; loja: string | null };
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<"loading" | "out" | { userId: string; role: Role; email: string }>("loading");
+  const [state, setState] = useState<"loading" | "out" | Session>("loading");
 
   const resolve = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return setState("out");
     const { data: r } = await supabase
       .from("user_roles")
-      .select("role, active")
+      .select("role, active, loja")
       .eq("user_id", data.user.id)
       .maybeSingle();
     if (!r || !r.active) {
@@ -79,7 +81,7 @@ function AdminPage() {
       navigate({ to: "/", replace: true });
       return;
     }
-    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "" });
+    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "", loja: r.loja ?? null });
   };
 
   useEffect(() => {
@@ -128,19 +130,43 @@ function AdminPage() {
               <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
               <TabsTrigger value="vendas">Vendas</TabsTrigger>
               {state.role !== "member" && <TabsTrigger value="financeiro">Financeiro</TabsTrigger>}
+              {state.role !== "member" && <TabsTrigger value="auditoria">Auditoria</TabsTrigger>}
             </TabsList>
             <TabsContent value="produtos">
               <Dashboard role={state.role} userId={state.userId} />
             </TabsContent>
             <TabsContent value="os">
-              <ServiceOrders userId={state.userId} />
+              <ServiceOrders
+                userId={state.userId}
+                email={state.email}
+                userLoja={state.loja}
+                isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                isManager={state.role !== "member"}
+              />
             </TabsContent>
             <TabsContent value="vendas">
-              <Sales userId={state.userId} email={state.email} isManager={state.role !== "member"} />
+              <Sales
+                userId={state.userId}
+                email={state.email}
+                isManager={state.role !== "member"}
+                isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                userLoja={state.loja}
+              />
             </TabsContent>
             {state.role !== "member" && (
               <TabsContent value="financeiro">
-                <Finance userId={state.userId} email={state.email} isManager />
+                <Finance
+                  userId={state.userId}
+                  email={state.email}
+                  isManager
+                  isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                  userLoja={state.loja}
+                />
+              </TabsContent>
+            )}
+            {state.role !== "member" && (
+              <TabsContent value="auditoria">
+                <OsAudit userLoja={state.loja} isGlobal={state.role === "superadmin" || state.role === "supervisor"} />
               </TabsContent>
             )}
           </Tabs>
@@ -351,32 +377,41 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  superadmin: "Superadmin",
+  supervisor: "Supervisor Geral",
+  gerente: "Gerente",
+  member: "Vendedor",
+};
+
 function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) {
   const qc = useQueryClient();
   const create = useServerFn(createMember);
   const setActive = useServerFn(setMemberActive);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newRole, setNewRole] = useState<"member" | "gerente">("member");
+  const [newRole, setNewRole] = useState<"member" | "gerente" | "supervisor">("member");
+  const [newLoja, setNewLoja] = useState(units[0].id);
   const [busy, setBusy] = useState(false);
   const { data: members } = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id, email, role, active")
+        .select("user_id, email, role, active, loja")
         .order("created_at");
       if (error) throw error;
       return data;
     },
   });
-  const memberCount = members?.filter((m) => m.role === "member").length ?? 0;
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await create({ data: { email, password, role: newRole } });
+      await create({
+        data: { email, password, role: newRole, loja: newRole === "supervisor" ? null : newLoja },
+      });
       toast.success("Conta criada.");
       setEmail("");
       setPassword("");
@@ -399,7 +434,8 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.email}</p>
               <p className="text-xs text-muted-foreground">
-                {m.role === "superadmin" ? "Superadmin" : m.role === "gerente" ? "Gerente" : "Vendedor"}
+                {ROLE_LABEL[m.role] ?? m.role}
+                {m.loja && ` · ${units.find((u) => u.id === m.loja)?.shortName ?? m.loja}`}
               </p>
             </div>
             {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role === "member") && (
@@ -422,15 +458,27 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
         ))}
       </ul>
       <form onSubmit={add} className="space-y-3 border-t border-border pt-4">
-        <p className="text-sm font-semibold">Adicionar conta ({memberCount} vendedores)</p>
+        <p className="text-sm font-semibold">Adicionar conta</p>
         {isSuper && (
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value as "member" | "gerente")}
+            onChange={(e) => setNewRole(e.target.value as "member" | "gerente" | "supervisor")}
           >
             <option value="member">Vendedor</option>
             <option value="gerente">Gerente</option>
+            <option value="supervisor">Supervisor Geral (acesso a todas as lojas)</option>
+          </select>
+        )}
+        {newRole !== "supervisor" && (
+          <select
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={newLoja}
+            onChange={(e) => setNewLoja(e.target.value)}
+          >
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
           </select>
         )}
         <Input
