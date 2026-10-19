@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 - Catalog products live in the `products` table; photos in a private `product-photos` bucket served via signed URLs (workspace blocks public buckets).
 - Staff roles live in `user_roles` (superadmin/member, `active` flag); account creation/deactivation goes through server functions in `src/lib/admin.functions.ts` that verify superadmin first.
+- Vendas and Financeiro share SaleForm; preserve original item prices and store the negotiated amount in sales.total so receipts derive the discount without duplicating sale data.

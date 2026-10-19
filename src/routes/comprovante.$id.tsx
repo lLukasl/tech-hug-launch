@@ -47,6 +47,8 @@ function Receipt() {
   const raw = (s.itens as SaleItem[]) ?? [];
   const itens: SaleItem[] = raw.length ? raw : [{ tipo: "avulsa", descricao: s.descricao, quantidade: 1, preco_unitario: Number(s.total) }];
   const pags = (s.pagamentos as Pagamento[]) ?? [];
+  const subtotal = saleItemsTotal(itens);
+  const desconto = Math.max(0, Math.round((subtotal - Number(s.total)) * 100) / 100);
 
   return (
     <div className="mx-auto max-w-3xl bg-background p-6 text-sm text-foreground print:p-0">
@@ -88,7 +90,11 @@ function Receipt() {
             ))}
           </tbody>
           <tfoot>
-            <tr><td colSpan={3} className="py-2 text-right font-semibold">Total</td><td className="text-right font-bold">{formatBRL(saleItemsTotal(itens))}</td></tr>
+            {desconto > 0 && <>
+              <tr><td colSpan={3} className="pt-2 text-right">Subtotal</td><td className="text-right">{formatBRL(subtotal)}</td></tr>
+              <tr><td colSpan={3} className="text-right">Desconto</td><td className="text-right">− {formatBRL(desconto)}</td></tr>
+            </>}
+            <tr><td colSpan={3} className="py-2 text-right font-semibold">Total</td><td className="text-right font-bold">{formatBRL(Number(s.total))}</td></tr>
           </tfoot>
         </table>
       </section>

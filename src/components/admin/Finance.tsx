@@ -19,6 +19,7 @@ import {
   todaySP,
   saleItemTotal,
   saleItemsTotal,
+  salePricing,
   type Pagamento,
   type SaleItem,
 } from "@/lib/finance";
@@ -366,15 +367,18 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     },
   });
 
+  const [negotiatedTotal, setNegotiatedTotal] = useState("");
   const used = new Set(itens.map((i) => i.ref).filter(Boolean));
   const push = (i: SaleItem) => {
     const next = [...itens, i];
     setItens(next);
+    setNegotiatedTotal("");
     setPags(pags.length === 1 ? [{ ...pags[0], valor: saleItemsTotal(next) }] : pags);
   };
   const removeAt = (k: number) => {
     const next = itens.filter((_, j) => j !== k);
     setItens(next);
+    setNegotiatedTotal("");
     if (pags.length === 1) setPags([{ ...pags[0], valor: saleItemsTotal(next) }]);
   };
   const pickProduct = (id: string) => {
@@ -397,11 +401,22 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   };
 
   const totalItens = saleItemsTotal(itens);
-  const total = pagamentosTotal(pags);
+  const pricing = salePricing(totalItens, negotiatedTotal === "" ? totalItens : Number(negotiatedTotal));
+  const total = pricing.total;
+  const totalPago = pagamentosTotal(pags);
+  const changeTotal = (value: string) => {
+    setNegotiatedTotal(value);
+    const nextTotal = value === "" ? totalItens : Number(value);
+    if (pags.length === 1 && Number.isFinite(nextTotal)) {
+      setPags([{ ...pags[0], valor: nextTotal }]);
+    }
+  };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itens.length) return toast.error("Adicione pelo menos um item.");
-    if (total !== totalItens) return toast.error(`Pagamento (${formatBRL(total)}) diferente do total dos itens (${formatBRL(totalItens)}).`);
+    if (!pricing.valid) return toast.error("Informe um total maior que zero e não superior à soma dos itens.");
+    if (pags.some((p) => !Number.isFinite(p.valor) || p.valor < 0)) return toast.error("Informe valores de pagamento válidos.");
+    if (totalPago !== total) return toast.error(`Pagamento (${formatBRL(totalPago)}) diferente do total final (${formatBRL(total)}).`);
     setBusy(true);
     const prod = itens.find((i) => i.tipo === "produto");
     const os = itens.find((i) => i.tipo === "os");
@@ -435,7 +450,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     toast.success("Venda lançada.", {
       action: { label: "Comprovante", onClick: () => window.open(`/comprovante/${sale.id}`, "_blank") },
     });
-    setItens([]); setCliente(""); setTelefone("");
+    setItens([]); setCliente(""); setTelefone(""); setNegotiatedTotal("");
     setPags([{ forma: "pix", valor: 0 }]);
     ["products", "service-orders", "sale-products", "sale-os", "sales-list"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     onDone();
@@ -498,6 +513,28 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
         <Input placeholder="Telefone (opcional)" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
       </div>
 
+      <div className="space-y-2 border-t border-border pt-3">
+        <div className="flex flex-wrap justify-between gap-2 text-sm">
+          <span>Subtotal dos itens</span><span>{formatBRL(totalItens)}</span>
+        </div>
+        <Label htmlFor={`sale-total-${session.id}`}>Total final (R$)</Label>
+        <Input
+          id={`sale-total-${session.id}`}
+          type="number" step="0.01" min="0.01" max={totalItens}
+          value={negotiatedTotal === "" ? totalItens : negotiatedTotal}
+          onChange={(e) => changeTotal(e.target.value)}
+          disabled={!itens.length}
+        />
+        {pricing.discount > 0 && (
+          <div className="flex flex-wrap justify-between gap-2 text-sm font-medium text-primary">
+            <span>Desconto</span><span>− {formatBRL(pricing.discount)}</span>
+          </div>
+        )}
+        {negotiatedTotal !== "" && !pricing.valid && (
+          <p className="text-sm text-destructive">O total deve ser maior que zero e não superar o subtotal.</p>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label>Pagamento</Label>
         {pags.map((p, i) => (
@@ -516,6 +553,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
               step="0.01"
               min="0"
               placeholder="Valor"
+              aria-label={`Valor do pagamento ${i + 1}`}
               value={p.valor || ""}
               onChange={(e) => setPags(pags.map((x, j) => (j === i ? { ...x, valor: Number(e.target.value) } : x)))}
             />
@@ -530,8 +568,13 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
           <Plus className="mr-1 h-4 w-4" /> Dividir pagamento
         </Button>
       </div>
-      <div className="flex items-center justify-between">
-        <span className="font-semibold">Total: {formatBRL(total)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-semibold">Total: {formatBRL(total)}</p>
+          <p className={`text-sm ${totalPago === total ? "text-muted-foreground" : "text-destructive"}`}>
+            Pagamentos: {formatBRL(totalPago)}
+          </p>
+        </div>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Lançar
         </Button>
