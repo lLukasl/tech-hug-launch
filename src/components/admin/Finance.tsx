@@ -184,7 +184,7 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
     if (!totals) return;
     const lojaName = units.find((u) => u.id === session.loja)?.name ?? session.loja;
     const csv = buildCashCsv({
-      data: session.data,
+      data: new Date(session.aberto_em).toLocaleDateString("pt-BR"),
       loja: lojaName,
       trocoInicial: Number(session.troco_inicial),
       totals,
@@ -195,7 +195,7 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
       withdrawals: (withdrawals ?? []).map((w) => ({ ...w, valor: Number(w.valor) })),
       formaLabel,
     });
-    downloadCsv(csv, `caixa-${session.loja}-${session.data}.csv`);
+    downloadCsv(csv, `caixa-${session.loja}-${session.aberto_em.slice(0, 10)}.csv`);
   };
 
   return (
