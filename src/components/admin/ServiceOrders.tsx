@@ -124,6 +124,8 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
           {creating && (
             <ServiceOrderForm
               userId={userId}
+              userLoja={userLoja}
+              isGlobal={isGlobal}
               onDone={async (id) => {
                 setCreating(false);
                 await refresh();
