@@ -22,9 +22,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { ServiceOrders } from "@/components/admin/ServiceOrders";
+import { ServiceOrders, OsAudit } from "@/components/admin/ServiceOrders";
 import { Sales } from "@/components/admin/Sales";
 import { Finance } from "@/components/admin/Finance";
+import { units } from "@/lib/units";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHOTO_BUCKET,
@@ -59,18 +60,19 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Role = "superadmin" | "gerente" | "member";
+type Role = "superadmin" | "gerente" | "member" | "supervisor";
+type Session = { userId: string; role: Role; email: string; loja: string | null };
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<"loading" | "out" | { userId: string; role: Role; email: string }>("loading");
+  const [state, setState] = useState<"loading" | "out" | Session>("loading");
 
   const resolve = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return setState("out");
     const { data: r } = await supabase
       .from("user_roles")
-      .select("role, active")
+      .select("role, active, loja")
       .eq("user_id", data.user.id)
       .maybeSingle();
     if (!r || !r.active) {
@@ -79,7 +81,7 @@ function AdminPage() {
       navigate({ to: "/", replace: true });
       return;
     }
-    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "" });
+    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "", loja: r.loja ?? null });
   };
 
   useEffect(() => {
@@ -128,19 +130,43 @@ function AdminPage() {
               <TabsTrigger value="os">Ordens de Serviço</TabsTrigger>
               <TabsTrigger value="vendas">Vendas</TabsTrigger>
               {state.role !== "member" && <TabsTrigger value="financeiro">Financeiro</TabsTrigger>}
+              {state.role !== "member" && <TabsTrigger value="auditoria">Auditoria</TabsTrigger>}
             </TabsList>
             <TabsContent value="produtos">
               <Dashboard role={state.role} userId={state.userId} />
             </TabsContent>
             <TabsContent value="os">
-              <ServiceOrders userId={state.userId} />
+              <ServiceOrders
+                userId={state.userId}
+                email={state.email}
+                userLoja={state.loja}
+                isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                isManager={state.role !== "member"}
+              />
             </TabsContent>
             <TabsContent value="vendas">
-              <Sales userId={state.userId} email={state.email} isManager={state.role !== "member"} />
+              <Sales
+                userId={state.userId}
+                email={state.email}
+                isManager={state.role !== "member"}
+                isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                userLoja={state.loja}
+              />
             </TabsContent>
             {state.role !== "member" && (
               <TabsContent value="financeiro">
-                <Finance userId={state.userId} email={state.email} isManager />
+                <Finance
+                  userId={state.userId}
+                  email={state.email}
+                  isManager
+                  isGlobal={state.role === "superadmin" || state.role === "supervisor"}
+                  userLoja={state.loja}
+                />
+              </TabsContent>
+            )}
+            {state.role !== "member" && (
+              <TabsContent value="auditoria">
+                <OsAudit userLoja={state.loja} isGlobal={state.role === "superadmin" || state.role === "supervisor"} />
               </TabsContent>
             )}
           </Tabs>
