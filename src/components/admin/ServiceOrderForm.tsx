@@ -11,6 +11,9 @@ import { SignaturePad } from "@/components/admin/SignaturePad";
 import { units } from "@/lib/units";
 import { formatBRL } from "@/lib/products";
 import {
+  AVISO_RISCOS,
+  ESTADO_ENTRADA,
+  RISCOS_ABERTURA,
   GARANTIA_OPCOES,
   NAO_DEIXOU,
   OS_BRANDS,
@@ -43,6 +46,9 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
     ciente_termos: false,
   });
   const [naoDeixou, setNaoDeixou] = useState<string[]>([]);
+  const [estado, setEstado] = useState("ligando");
+  const [riscos, setRiscos] = useState<string[]>([]);
+  const [cienteRiscos, setCienteRiscos] = useState(false);
   const [itens, setItens] = useState<OsItem[]>([{ quantidade: 1, discriminacao: "", preco_unitario: 0 }]);
   const [sigLoja, setSigLoja] = useState<string | null>(null);
   const [sigCliente, setSigCliente] = useState<string | null>(null);
@@ -53,6 +59,7 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cienteRiscos) return toast.error("Confirme que o cliente foi avisado sobre os riscos da abertura.");
     if (!f.ciente_termos) return toast.error("Confirme que o cliente está ciente dos termos de garantia.");
     setBusy(true);
     const { marca_outra, ...rest } = f;
@@ -62,6 +69,9 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
         ...rest,
         marca: f.marca === "Outros" ? marca_outra || "Outros" : f.marca,
         nao_deixou: naoDeixou,
+        estado_entrada: estado,
+        riscos,
+        ciente_riscos: cienteRiscos,
         itens: itens.filter((i) => i.discriminacao.trim()),
         assinatura_loja: sigLoja,
         assinatura_cliente: sigCliente,
@@ -154,6 +164,40 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
           ))}
         </div>
       </fieldset>
+
+      <fieldset className="space-y-3 rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+        <p className="font-semibold text-primary">⚠ Lembrete: riscos na abertura do aparelho</p>
+        <div className="space-y-2">
+          <Label>Como o aparelho chegou?</Label>
+          <div className="flex flex-wrap gap-4">
+            {ESTADO_ENTRADA.map((s) => (
+              <label key={s.value} className="flex items-center gap-2 text-sm">
+                <input type="radio" name="estado_entrada" checked={estado === s.value} onChange={() => setEstado(s.value)} />
+                {s.label}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Riscos e danos já existentes (marque os que se aplicam)</Label>
+          {RISCOS_ABERTURA.map((r) => (
+            <label key={r.value} className="flex items-start gap-2 text-sm">
+              <Checkbox
+                className="mt-0.5"
+                checked={riscos.includes(r.value)}
+                onCheckedChange={(v) => setRiscos((a) => (v ? [...a, r.value] : a.filter((x) => x !== r.value)))}
+              />
+              {r.label}
+            </label>
+          ))}
+        </div>
+        <p className="rounded-md bg-background p-3 text-xs leading-relaxed">{AVISO_RISCOS}</p>
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <Checkbox checked={cienteRiscos} onCheckedChange={(v) => setCienteRiscos(!!v)} />
+          Cliente foi avisado e está ciente dos riscos da abertura
+        </label>
+      </fieldset>
+
 
       <div className="space-y-2">
         <Label>Defeito encontrado</Label>

@@ -91,6 +91,23 @@ function OsPrint() {
         {row("Observações", o.observacoes)}
       </section>
 
+      <section className="my-2 space-y-1 rounded border-2 border-primary p-3 print:break-inside-avoid">
+        <h2 className="font-semibold">Riscos na abertura do aparelho</h2>
+        <p>
+          <strong>Estado na entrada:</strong>{" "}
+          {ESTADO_ENTRADA.find((s) => s.value === o.estado_entrada)?.label ?? o.estado_entrada}
+        </p>
+        {o.riscos?.length > 0 && (
+          <ul className="list-inside list-disc text-xs">
+            {o.riscos.map((r: string) => (
+              <li key={r}>{RISCOS_ABERTURA.find((x) => x.value === r)?.label ?? r}</li>
+            ))}
+          </ul>
+        )}
+        <p className="text-xs leading-relaxed">{AVISO_RISCOS}</p>
+        <p>{o.ciente_riscos ? "☑" : "☐"} Cliente avisado e ciente dos riscos da abertura</p>
+      </section>
+
       <section className="py-4">
         <h2 className="mb-2 font-semibold">Prestação de serviços</h2>
         <table className="w-full border-collapse">
