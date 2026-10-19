@@ -1,6 +1,6 @@
 import { units } from "@/lib/units";
 
-export type OsStatus = "aberta" | "em_andamento" | "pronta" | "entregue";
+export type OsStatus = "aberta" | "em_andamento" | "pronta" | "entregue" | "cancelada";
 export type OsItem = { quantidade: number; discriminacao: string; preco_unitario: number };
 
 export const OS_STATUS: { value: OsStatus; label: string }[] = [
@@ -8,6 +8,16 @@ export const OS_STATUS: { value: OsStatus; label: string }[] = [
   { value: "em_andamento", label: "Em andamento" },
   { value: "pronta", label: "Pronta" },
   { value: "entregue", label: "Entregue" },
+  { value: "cancelada", label: "Cancelada" },
+];
+
+export const CANCEL_MOTIVOS = [
+  "Preço alto",
+  "Demora no prazo",
+  "Falta de peças",
+  "Desistência do cliente",
+  "Aparelho inviável",
+  "Outro",
 ];
 
 export const TIPOS_APARELHO = [
