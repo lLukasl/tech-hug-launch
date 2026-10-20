@@ -131,6 +131,14 @@ export const itemTotal = (i: OsItem) => Math.round(i.quantidade * i.preco_unitar
 export const ordersTotal = (items: OsItem[]) =>
   Math.round(items.reduce((s, i) => s + itemTotal(i), 0) * 100) / 100;
 
+export const PLACA_ITEM = "Reparo de placa";
+/** Rebuilds OS items after bench work: drops initial services marked unnecessary and syncs the board repair line. */
+export const applyBenchToItems = (items: OsItem[], dispensados: number[], placaValor: number | null, aprovado: boolean | null): OsItem[] => {
+  const base = items.filter((i, k) => i.discriminacao !== PLACA_ITEM && !dispensados.includes(k));
+  if (placaValor && placaValor > 0 && aprovado !== false) base.push({ quantidade: 1, discriminacao: PLACA_ITEM, preco_unitario: placaValor });
+  return base;
+};
+
 export const unitById = (id: string) => units.find((u) => u.id === id);
 
 export function shareOsLink(opts: { unitId: string; numero: number; cliente: string; url: string }) {
