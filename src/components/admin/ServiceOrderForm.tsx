@@ -199,6 +199,53 @@ export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: 
         </div>
       </fieldset>
 
+      <fieldset className="space-y-3 rounded-lg border border-border p-4">
+        <Label>Tipo de atendimento</Label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {([
+            ["padrao", "Reparo padrão (tela, conector, bateria…)"],
+            ["placa", "Suspeita de problema de placa"],
+          ] as const).map(([v, l]) => (
+            <label key={v} className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${atendimento === v ? "border-primary bg-primary/5 font-semibold" : "border-input"}`}>
+              <input type="radio" name="atendimento" checked={atendimento === v} onChange={() => setAtendimento(v)} />
+              {l}
+            </label>
+          ))}
+        </div>
+        {atendimento === "placa" && (
+          <div className="space-y-3 rounded-md bg-accent/40 p-3">
+            <p className="text-sm font-semibold">Triagem de placa no balcão</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {SINTOMAS_PLACA.map((s) => (
+                <label key={s} className="flex items-start gap-2 text-sm">
+                  <Checkbox className="mt-0.5" checked={sintomas.includes(s)} onCheckedChange={(v) => setSintomas((a) => (v ? [...a, s] : a.filter((x) => x !== s)))} />
+                  {s}
+                </label>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1">
+                <Label>Já foi aberto em outra assistência?</Label>
+                <select className={selectCls} value={mexido} onChange={(e) => setMexido(e.target.value)}>
+                  <option value="nao_sabe">Não sabe</option>
+                  <option value="sim">Sim</option>
+                  <option value="nao">Não</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Consumo na fonte (opcional)</Label>
+                <Input placeholder="Ex.: 0,15A travado" value={consumo} onChange={(e) => setConsumo(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Valor pré-aprovado R$ (opcional)</Label>
+                <Input inputMode="decimal" value={valorPre} onChange={(e) => setValorPre(e.target.value)} />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Ao salvar, a OS já entra na bancada de placa como "Aguardando diagnóstico", com essa triagem no histórico técnico.</p>
+          </div>
+        )}
+      </fieldset>
+
       <fieldset className="space-y-3 rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
         <p className="font-semibold text-primary">⚠ Lembrete: riscos na abertura do aparelho</p>
         <div className="space-y-2">
@@ -250,7 +297,7 @@ export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: 
         <Label>Prestação de serviços</Label>
         <div className="space-y-2">
           {itens.map((it, i) => (
-            <div key={i} className="grid grid-cols-[4rem_1fr_6rem_auto] items-center gap-2 sm:grid-cols-[4rem_1fr_7rem_7rem_auto]">
+            <div key={i} className="grid grid-cols-[4rem_minmax(0,1fr)_6rem_auto] items-center gap-2 rounded-md border border-border p-2 sm:grid-cols-[4rem_minmax(0,1fr)_7rem_7rem_auto] sm:border-0 sm:p-0">
               <Input type="number" min={1} aria-label="Quantidade" value={it.quantidade} onChange={(e) => setItem(i, { quantidade: Math.max(1, Number(e.target.value)) })} />
               <Input placeholder="Discriminação" value={it.discriminacao} onChange={(e) => setItem(i, { discriminacao: e.target.value })} />
               <Input type="number" min={0} step="0.01" aria-label="Preço unitário" value={it.preco_unitario} onChange={(e) => setItem(i, { preco_unitario: Number(e.target.value) })} />
