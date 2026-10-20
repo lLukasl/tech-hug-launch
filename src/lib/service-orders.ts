@@ -65,7 +65,8 @@ export function laudoClienteMsg(o: { numero: number; cliente_nome: string; marca
   if (o.placa_status_label) l.push(`Situação atual: ${o.placa_status_label}`);
   if (o.servicos_realizados) l.push(`Diagnóstico / serviços: ${o.servicos_realizados}`);
   if (o.valor != null) l.push(`Valor do reparo adicional: ${brl(o.valor)}`);
-  if (o.total) l.push(`Valor total do orçamento: ${brl(o.total + (o.valor ?? 0))}`);
+  // total já é o novo total da OS (itens incluindo o reparo de placa) — não somar de novo
+  if (o.total) l.push(`Valor total do orçamento: ${brl(o.total)}`);
   if (o.garantia_dias) l.push(`Garantia: ${o.garantia_dias} dias`);
   l.push("", o.valor != null ? "Podemos prosseguir com o reparo? Responda *SIM* para autorizar." : "Qualquer dúvida, estamos à disposição.");
   if (o.loja_tel) l.push(`Contato da loja: ${o.loja_tel}`);
