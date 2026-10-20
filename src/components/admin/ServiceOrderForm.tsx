@@ -11,6 +11,9 @@ import { SignaturePad } from "@/components/admin/SignaturePad";
 import { units } from "@/lib/units";
 import { formatBRL } from "@/lib/products";
 import {
+  AVISO_RISCOS,
+  ESTADO_ENTRADA,
+  RISCOS_ABERTURA,
   GARANTIA_OPCOES,
   NAO_DEIXOU,
   OS_BRANDS,
@@ -24,10 +27,26 @@ import {
 const selectCls =
   "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
-export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (id: string) => void }) {
+const SINTOMAS_PLACA = [
+  "Não liga / consumo zerado",
+  "Em curto / esquenta",
+  "Reinicia sozinho / não inicia o sistema",
+  "Sem sinal de rede",
+  "Sem áudio / microfone",
+  "Não carrega (mesmo com conector novo)",
+  "Contato com líquido / oxidação",
+  "Outro",
+];
+
+export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: { userId: string; email?: string; userLoja?: string | null; isGlobal?: boolean; onDone: (id: string) => void }) {
+  const [atendimento, setAtendimento] = useState<"padrao" | "placa">("padrao");
+  const [sintomas, setSintomas] = useState<string[]>([]);
+  const [mexido, setMexido] = useState("nao_sabe");
+  const [consumo, setConsumo] = useState("");
+  const [valorPre, setValorPre] = useState("");
   const [now] = useState(() => new Date());
   const [f, setF] = useState({
-    loja: units[0].id,
+    loja: isGlobal ? units[0].id : (userLoja ?? units[0].id),
     cliente_nome: "",
     cliente_telefone: "",
     tipo_aparelho: "celular",
@@ -43,6 +62,9 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
     ciente_termos: false,
   });
   const [naoDeixou, setNaoDeixou] = useState<string[]>([]);
+  const [estado, setEstado] = useState("ligando");
+  const [riscos, setRiscos] = useState<string[]>([]);
+  const [cienteRiscos, setCienteRiscos] = useState(false);
   const [itens, setItens] = useState<OsItem[]>([{ quantidade: 1, discriminacao: "", preco_unitario: 0 }]);
   const [sigLoja, setSigLoja] = useState<string | null>(null);
   const [sigCliente, setSigCliente] = useState<string | null>(null);
@@ -53,19 +75,41 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cienteRiscos) return toast.error("Confirme que o cliente foi avisado sobre os riscos da abertura.");
     if (!f.ciente_termos) return toast.error("Confirme que o cliente está ciente dos termos de garantia.");
+    const isPlaca = atendimento === "placa";
+    if (isPlaca && !sintomas.length) return toast.error("Marque ao menos um sintoma da triagem de placa.");
     setBusy(true);
     const { marca_outra, ...rest } = f;
+    const triagem = isPlaca
+      ? [
+          `TRIAGEM DE PLACA (balcão): ${sintomas.join(", ")}.`,
+          `Já mexido em outra assistência: ${mexido === "sim" ? "Sim" : mexido === "nao" ? "Não" : "Não sabe"}.`,
+          consumo.trim() && `Consumo/fonte: ${consumo.trim()}.`,
+          valorPre.trim() && `Valor pré-aprovado pelo cliente: R$ ${valorPre.trim()}.`,
+        ].filter(Boolean).join(" ")
+      : "";
     const { data, error } = await supabase
       .from("service_orders")
       .insert({
         ...rest,
         marca: f.marca === "Outros" ? marca_outra || "Outros" : f.marca,
         nao_deixou: naoDeixou,
+        estado_entrada: estado,
+        riscos,
+        ciente_riscos: cienteRiscos,
         itens: itens.filter((i) => i.discriminacao.trim()),
         assinatura_loja: sigLoja,
         assinatura_cliente: sigCliente,
         criado_por: userId,
+        ...(isPlaca
+          ? {
+              placa_status: "diagnostico",
+              localizacao: "loja",
+              historico_tecnico: [{ at: new Date().toISOString(), by: email ?? "balcão", texto: triagem, local: "loja", status: "diagnostico" }],
+              observacoes: [triagem, f.observacoes].filter(Boolean).join("\n"),
+            }
+          : {}),
       })
       .select("id")
       .single();
@@ -85,11 +129,17 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label>Loja</Label>
-          <select className={selectCls} value={f.loja} onChange={(e) => set("loja", e.target.value)}>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
+          {isGlobal ? (
+            <select className={selectCls} value={f.loja} onChange={(e) => set("loja", e.target.value)}>
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          ) : (
+            <p className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
+              {units.find((u) => u.id === f.loja)?.name ?? f.loja}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label>Nome do cliente</Label>
@@ -149,6 +199,87 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
         </div>
       </fieldset>
 
+      <fieldset className="space-y-3 rounded-lg border border-border p-4">
+        <Label>Tipo de atendimento</Label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {([
+            ["padrao", "Reparo padrão (tela, conector, bateria…)"],
+            ["placa", "Suspeita de problema de placa"],
+          ] as const).map(([v, l]) => (
+            <label key={v} className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${atendimento === v ? "border-primary bg-primary/5 font-semibold" : "border-input"}`}>
+              <input type="radio" name="atendimento" checked={atendimento === v} onChange={() => setAtendimento(v)} />
+              {l}
+            </label>
+          ))}
+        </div>
+        {atendimento === "placa" && (
+          <div className="space-y-3 rounded-md bg-accent/40 p-3">
+            <p className="text-sm font-semibold">Triagem de placa no balcão</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {SINTOMAS_PLACA.map((s) => (
+                <label key={s} className="flex items-start gap-2 text-sm">
+                  <Checkbox className="mt-0.5" checked={sintomas.includes(s)} onCheckedChange={(v) => setSintomas((a) => (v ? [...a, s] : a.filter((x) => x !== s)))} />
+                  {s}
+                </label>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1">
+                <Label>Já foi aberto em outra assistência?</Label>
+                <select className={selectCls} value={mexido} onChange={(e) => setMexido(e.target.value)}>
+                  <option value="nao_sabe">Não sabe</option>
+                  <option value="sim">Sim</option>
+                  <option value="nao">Não</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Consumo na fonte (opcional)</Label>
+                <Input placeholder="Ex.: 0,15A travado" value={consumo} onChange={(e) => setConsumo(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Valor pré-aprovado R$ (opcional)</Label>
+                <Input inputMode="decimal" value={valorPre} onChange={(e) => setValorPre(e.target.value)} />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Ao salvar, a OS já entra na bancada de placa como "Aguardando diagnóstico", com essa triagem no histórico técnico.</p>
+          </div>
+        )}
+      </fieldset>
+
+      <fieldset className="space-y-3 rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+        <p className="font-semibold text-primary">⚠ Lembrete: riscos na abertura do aparelho</p>
+        <div className="space-y-2">
+          <Label>Como o aparelho chegou?</Label>
+          <div className="flex flex-wrap gap-4">
+            {ESTADO_ENTRADA.map((s) => (
+              <label key={s.value} className="flex items-center gap-2 text-sm">
+                <input type="radio" name="estado_entrada" checked={estado === s.value} onChange={() => setEstado(s.value)} />
+                {s.label}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Riscos e danos já existentes (marque os que se aplicam)</Label>
+          {RISCOS_ABERTURA.map((r) => (
+            <label key={r.value} className="flex items-start gap-2 text-sm">
+              <Checkbox
+                className="mt-0.5"
+                checked={riscos.includes(r.value)}
+                onCheckedChange={(v) => setRiscos((a) => (v ? [...a, r.value] : a.filter((x) => x !== r.value)))}
+              />
+              {r.label}
+            </label>
+          ))}
+        </div>
+        <p className="rounded-md bg-background p-3 text-xs leading-relaxed">{AVISO_RISCOS}</p>
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <Checkbox checked={cienteRiscos} onCheckedChange={(v) => setCienteRiscos(!!v)} />
+          Cliente foi avisado e está ciente dos riscos da abertura
+        </label>
+      </fieldset>
+
+
       <div className="space-y-2">
         <Label>Defeito encontrado</Label>
         <Textarea value={f.defeito} onChange={(e) => set("defeito", e.target.value)} />
@@ -166,7 +297,7 @@ export function ServiceOrderForm({ userId, onDone }: { userId: string; onDone: (
         <Label>Prestação de serviços</Label>
         <div className="space-y-2">
           {itens.map((it, i) => (
-            <div key={i} className="grid grid-cols-[4rem_1fr_6rem_auto] items-center gap-2 sm:grid-cols-[4rem_1fr_7rem_7rem_auto]">
+            <div key={i} className="grid grid-cols-[4rem_minmax(0,1fr)_6rem_auto] items-center gap-2 rounded-md border border-border p-2 sm:grid-cols-[4rem_minmax(0,1fr)_7rem_7rem_auto] sm:border-0 sm:p-0">
               <Input type="number" min={1} aria-label="Quantidade" value={it.quantidade} onChange={(e) => setItem(i, { quantidade: Math.max(1, Number(e.target.value)) })} />
               <Input placeholder="Discriminação" value={it.discriminacao} onChange={(e) => setItem(i, { discriminacao: e.target.value })} />
               <Input type="number" min={0} step="0.01" aria-label="Preço unitário" value={it.preco_unitario} onChange={(e) => setItem(i, { preco_unitario: Number(e.target.value) })} />

@@ -1,0 +1,163 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LOCALIZACOES, PLACA_STATUS, labelOf, placaWhatsappMsg, type BenchLog } from "@/lib/service-orders";
+
+const fsel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+
+type Props = { orderId: string | null; email: string; onClose: () => void; onSaved: () => void };
+
+export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
+  const { data: o, isLoading, refetch } = useQuery({
+    queryKey: ["os-bench", orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select("id, numero, cliente_nome, cliente_telefone, modelo, localizacao, responsavel, placa_status, placa_valor, placa_aprovado, historico_tecnico")
+        .eq("id", orderId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [local, setLocal] = useState("loja");
+  const [resp, setResp] = useState("");
+  const [status, setStatus] = useState("");
+  const [valor, setValor] = useState("");
+  const [aprov, setAprov] = useState("");
+  const [nota, setNota] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!o) return;
+    setLocal(o.localizacao);
+    setResp(o.responsavel ?? "");
+    setStatus(o.placa_status ?? "");
+    setValor(o.placa_valor != null ? String(o.placa_valor) : "");
+    setAprov(o.placa_aprovado == null ? "" : o.placa_aprovado ? "sim" : "nao");
+    setNota("");
+  }, [o]);
+
+  const logs = (o?.historico_tecnico as BenchLog[] | undefined) ?? [];
+
+  const save = async () => {
+    if (!o) return;
+    const changed = local !== o.localizacao || resp !== (o.responsavel ?? "") || status !== (o.placa_status ?? "");
+    if (!nota.trim() && !changed) return toast.error("Descreva o que foi feito ou altere a localização/status.");
+    setBusy(true);
+    const entry: BenchLog = { at: new Date().toISOString(), by: email, texto: nota.trim(), local, status: status || null, responsavel: resp || null };
+    const { error } = await supabase
+      .from("service_orders")
+      .update({
+        localizacao: local,
+        responsavel: resp.trim() || null,
+        placa_status: status || null,
+        placa_valor: valor ? Number(valor.replace(",", ".")) : null,
+        placa_aprovado: aprov === "" ? null : aprov === "sim",
+        historico_tecnico: [...logs, entry],
+      })
+      .eq("id", o.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Registro salvo.");
+    await refetch();
+    onSaved();
+  };
+
+  const wa = o
+    ? `https://wa.me/55${o.cliente_telefone.replace(/\D/g, "")}?text=${encodeURIComponent(
+        placaWhatsappMsg({ numero: o.numero, cliente_nome: o.cliente_nome, modelo: o.modelo, valor: valor ? Number(valor.replace(",", ".")) : null }),
+      )}`
+    : "#";
+
+  return (
+    <Dialog open={!!orderId} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Bancada / Placa — OS #{o?.numero}</DialogTitle>
+        </DialogHeader>
+        {isLoading || !o ? (
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Onde o aparelho está</Label>
+                <select className={fsel} value={local} onChange={(e) => setLocal(e.target.value)}>
+                  {LOCALIZACOES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Com quem está</Label>
+                <Input value={resp} onChange={(e) => setResp(e.target.value)} placeholder="Ex.: Técnico Marcos" />
+              </div>
+              <div className="space-y-1">
+                <Label>Status de placa</Label>
+                <select className={fsel} value={status} onChange={(e) => setStatus(e.target.value)}>
+                  <option value="">Sem problema de placa</option>
+                  {PLACA_STATUS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Valor do reparo de placa (R$)</Label>
+                <Input inputMode="decimal" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
+              </div>
+              <div className="space-y-1">
+                <Label>Cliente aprovou?</Label>
+                <select className={fsel} value={aprov} onChange={(e) => setAprov(e.target.value)}>
+                  <option value="">Aguardando resposta</option>
+                  <option value="sim">Sim, aprovou</option>
+                  <option value="nao">Não aprovou</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <Button variant="outline" className="w-full" asChild>
+                  <a href={wa} target="_blank" rel="noreferrer">
+                    <MessageCircle className="mr-2 h-4 w-4" /> Enviar laudo ao cliente
+                  </a>
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>O que foi feito / medido</Label>
+              <Textarea rows={3} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Ex.: Trocada tela e bateria, sem imagem. Curto na linha principal, enviado ao laboratório." />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={save} disabled={busy}>
+                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar registro
+              </Button>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Histórico técnico</h3>
+              {!logs.length ? (
+                <p className="text-sm text-muted-foreground">Nenhum registro ainda.</p>
+              ) : (
+                <ol className="space-y-2">
+                  {[...logs].reverse().map((l, i) => (
+                    <li key={i} className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(l.at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} · {l.by} ·{" "}
+                        {labelOf(LOCALIZACOES, l.local)}{l.responsavel ? ` (${l.responsavel})` : ""}
+                        {l.status ? ` · ${labelOf(PLACA_STATUS, l.status)}` : ""}
+                      </p>
+                      {l.texto && <p className="mt-1">{l.texto}</p>}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
