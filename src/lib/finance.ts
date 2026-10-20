@@ -64,3 +64,9 @@ export function salePricing(subtotal: number, finalTotal: number) {
     && finalTotal > 0 && finalTotal <= subtotal;
   return { total: r2(finalTotal), discount: valid ? r2(subtotal - finalTotal) : 0, valid };
 }
+
+/** Desconto de uma venda registrada: subtotal dos itens − total cobrado (0 se não houver). */
+export function saleRecordDiscount(itens: unknown, total: number) {
+  const sub = saleItemsTotal((itens as SaleItem[]) ?? []);
+  return sub > total ? r2(sub - total) : 0;
+}
