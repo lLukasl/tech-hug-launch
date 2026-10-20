@@ -20,6 +20,39 @@ export const CANCEL_MOTIVOS = [
   "Outro",
 ];
 
+export const LOCALIZACOES = [
+  { value: "loja", label: "Na loja de origem" },
+  { value: "transito", label: "Em trânsito" },
+  { value: "laboratorio", label: "No laboratório de placa" },
+  { value: "retornado", label: "Retornou à loja" },
+];
+
+export const PLACA_STATUS = [
+  { value: "encaminhado", label: "Encaminhado para placa" },
+  { value: "diagnostico", label: "Aguardando diagnóstico" },
+  { value: "peca", label: "Aguardando peça / CI" },
+  { value: "aprovacao", label: "Aguardando aprovação do cliente" },
+  { value: "testes", label: "Recuperado / em testes" },
+  { value: "concluido", label: "Concluído" },
+  { value: "inviavel", label: "Inviável / sem reparo" },
+];
+
+export type BenchLog = { at: string; by: string; texto: string; local?: string; status?: string | null; responsavel?: string | null };
+
+export const labelOf = (list: { value: string; label: string }[], v?: string | null) =>
+  list.find((x) => x.value === v)?.label ?? v ?? "—";
+
+/** Dias desde o último registro (ou abertura) — usado para destacar aparelhos parados. */
+export function diasParado(createdAt: string, logs: BenchLog[], now = new Date()) {
+  const last = logs.length ? logs[logs.length - 1].at : createdAt;
+  return Math.floor((now.getTime() - new Date(last).getTime()) / 86400000);
+}
+
+export function placaWhatsappMsg(o: { numero: number; cliente_nome: string; modelo?: string | null; valor: number | null }) {
+  const v = o.valor != null ? o.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "a confirmar";
+  return `Olá, ${o.cliente_nome}! Aqui é da Clínica Cell, sobre a OS #${o.numero}${o.modelo ? ` (${o.modelo})` : ""}. Durante o diagnóstico identificamos um defeito interno na placa do aparelho. O valor do reparo de placa é ${v}. Podemos prosseguir? Responda SIM para autorizar.`;
+}
+
 export const TIPOS_APARELHO = [
   { value: "celular", label: "Celular" },
   { value: "tablet", label: "Tablet" },
