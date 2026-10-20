@@ -40,6 +40,25 @@ const SELLER: Topic[] = [
     ],
   },
   {
+    title: "Bancada e problemas de placa",
+    steps: [
+      "Na lista de OS, clique em \"Bancada\" no aparelho.",
+      "Informe onde o aparelho está (loja, em trânsito, laboratório de placa ou de volta à loja) e com quem está.",
+      "Se virou problema de placa, escolha o status (encaminhado, diagnóstico, aguardando peça, aguardando cliente, em testes, concluído ou inviável).",
+      "Escreva o que foi feito ou medido e clique em \"Salvar registro\". Tudo fica no Histórico técnico com data e seu usuário.",
+      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\" para pedir a aprovação pelo WhatsApp. Depois marque se o cliente aprovou.",
+      "Use o filtro \"Somente bancada de placa\" para ver só esses aparelhos. A etiqueta vermelha \"Parado há X dias\" mostra aparelhos sem registro há 2 dias ou mais.",
+    ],
+  },
+  {
+    title: "Dar desconto em uma venda",
+    steps: [
+      "Depois de adicionar os itens, altere o campo \"Total final (R$)\" para o valor combinado com o cliente.",
+      "O total não pode ser maior que a soma dos itens nem zero.",
+      "O desconto aparece no comprovante em PDF (Subtotal, Desconto e Total).",
+    ],
+  },
+  {
     title: "Registrar uma venda",
     steps: [
       "O caixa da loja precisa estar aberto pelo gerente. Se não estiver, aparecerá um aviso.",
