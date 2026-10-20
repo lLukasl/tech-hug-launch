@@ -8,3 +8,6 @@
 - [x] Venda com vários itens, comprovante PDF, baixa automática no encarte e OS
 - [x] Lojas por vendedor/gerente, supervisor geral, cancelamento de OS com justificativa
 - [x] Total negociado com desconto em Vendas e Caixa, pagamentos e comprovante
+- [x] Bancada de placa: localização, status, histórico técnico, laudo no WhatsApp, alerta de parado
+- [x] Triagem de placa no balcão na abertura da OS + lista responsiva em celular/tablet
+- [x] Documentação (Ajuda) por cargo, incluindo bancada, triagem e desconto

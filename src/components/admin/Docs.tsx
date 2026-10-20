@@ -30,10 +30,22 @@ const SELLER: Topic[] = [
       "Adicione os serviços (quantidade, descrição, preço) e escolha a garantia.",
       "Colete as assinaturas da Clínica Cell e do cliente e salve.",
       "Use o botão de PDF/WhatsApp para enviar a OS ao cliente.",
+      "Dá para abrir a OS pelo celular ou tablet do balcão: os campos e os filtros se ajustam ao tamanho da tela.",
+    ],
+  },
+  {
+    title: "Triagem de placa no balcão",
+    steps: [
+      "Na nova OS, em \"Tipo de atendimento\" escolha \"Suspeita de problema de placa\". Marcando \"Reparo padrão (tela, conector, bateria…)\", a OS segue a sequência normal.",
+      "Marque ao menos um sintoma: não liga / consumo zerado, em curto / esquenta, reinicia sozinho / não inicia o sistema, sem sinal de rede, sem áudio ou microfone, não carrega mesmo com conector novo, contato com líquido / oxidação, ou outro.",
+      "Informe se o aparelho já foi aberto em outra assistência (Sim, Não ou Não sabe), o consumo na fonte (ex.: 0,15A travado) e o valor que o cliente já aprovou.",
+      "Ao salvar, a OS entra direto na bancada de placa como \"Aguardando diagnóstico\" e a triagem fica registrada no Histórico técnico, com data e seu usuário.",
+      "Na lista de OS, use o filtro \"Placa: todas\" para ver um estágio específico (encaminhado, aguardando peça, aguardando aprovação etc.) ou \"Somente bancada de placa\" para ver só esses aparelhos.",
     ],
   },
   {
     title: "Atualizar o status de uma OS",
+
     steps: [
       "Na lista de OS, altere o status: Aberta → Em andamento → Pronta → Entregue.",
       "Ao vender uma OS pela aba Vendas, ela é marcada como Entregue automaticamente.",
@@ -42,13 +54,14 @@ const SELLER: Topic[] = [
   {
     title: "Bancada e problemas de placa",
     steps: [
-      "Na lista de OS, clique em \"Bancada\" no aparelho.",
+      "Na lista de OS, clique em \"Bancada\" no aparelho. Se a OS foi aberta com triagem de placa, ela já chega aqui como \"Aguardando diagnóstico\", com a triagem no Histórico técnico.",
       "Informe onde o aparelho está (loja, em trânsito, laboratório de placa ou de volta à loja) e com quem está.",
       "Se virou problema de placa, escolha o status (encaminhado, diagnóstico, aguardando peça, aguardando cliente, em testes, concluído ou inviável).",
       "Escreva o que foi feito ou medido e clique em \"Salvar registro\". Tudo fica no Histórico técnico com data e seu usuário.",
-      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\" para pedir a aprovação pelo WhatsApp. Depois marque se o cliente aprovou.",
+      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\": o WhatsApp abre já com a mensagem pronta para o número da OS — basta enviar. Depois marque se o cliente aprovou.",
       "Use o filtro \"Somente bancada de placa\" para ver só esses aparelhos. A etiqueta vermelha \"Parado há X dias\" mostra aparelhos sem registro há 2 dias ou mais.",
     ],
+
   },
   {
     title: "Dar desconto em uma venda",
