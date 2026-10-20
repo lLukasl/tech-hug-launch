@@ -20,6 +20,7 @@ import {
   saleItemTotal,
   saleItemsTotal,
   salePricing,
+  saleRecordDiscount,
   type Pagamento,
   type SaleItem,
 } from "@/lib/finance";
@@ -27,6 +28,10 @@ import {
 type Totals = { credito: number; debito: number; pix: number; dinheiro: number; vendas: number; sangrias: number };
 const sel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 const formaLabel = (f: string) => FORMAS.find((x) => x.value === f)?.label ?? f;
+const saleDiscountLabel = (itens: unknown, total: number) => {
+  const d = saleRecordDiscount(itens, total);
+  return d > 0 ? ` · Desconto − ${formatBRL(d)}` : "";
+};
 
 export function Finance({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
   const qc = useQueryClient();
@@ -254,6 +259,7 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
                     {new Date(s.created_at).toLocaleTimeString("pt-BR", { timeStyle: "short" })} ·{" "}
                     {(s.pagamentos as Pagamento[]).map((p) => `${formaLabel(p.forma)} ${formatBRL(p.valor)}`).join(" + ")}
                     {isManager && s.vendedor_email && ` · ${s.vendedor_email}`}
+                    {saleDiscountLabel(s.itens, Number(s.total))}
                   </p>
                 </div>
                 <span className="font-semibold">{formatBRL(Number(s.total))}</span>
@@ -368,17 +374,20 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   });
 
   const [negotiatedTotal, setNegotiatedTotal] = useState("");
+  const [discountInput, setDiscountInput] = useState("");
   const used = new Set(itens.map((i) => i.ref).filter(Boolean));
   const push = (i: SaleItem) => {
     const next = [...itens, i];
     setItens(next);
     setNegotiatedTotal("");
+    setDiscountInput("");
     setPags(pags.length === 1 ? [{ ...pags[0], valor: saleItemsTotal(next) }] : pags);
   };
   const removeAt = (k: number) => {
     const next = itens.filter((_, j) => j !== k);
     setItens(next);
     setNegotiatedTotal("");
+    setDiscountInput("");
     if (pags.length === 1) setPags([{ ...pags[0], valor: saleItemsTotal(next) }]);
   };
   const pickProduct = (id: string) => {
@@ -407,9 +416,18 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   const changeTotal = (value: string) => {
     setNegotiatedTotal(value);
     const nextTotal = value === "" ? totalItens : Number(value);
+    const d = Math.round((totalItens - nextTotal) * 100) / 100;
+    setDiscountInput(Number.isFinite(d) && d > 0 ? String(d) : "");
     if (pags.length === 1 && Number.isFinite(nextTotal)) {
       setPags([{ ...pags[0], valor: nextTotal }]);
     }
+  };
+  const changeDiscount = (value: string) => {
+    setDiscountInput(value);
+    const d = Number(value);
+    const nextTotal = value === "" || !Number.isFinite(d) ? totalItens : Math.round((totalItens - d) * 100) / 100;
+    setNegotiatedTotal(nextTotal === totalItens ? "" : String(nextTotal));
+    if (pags.length === 1) setPags([{ ...pags[0], valor: nextTotal }]);
   };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,18 +535,33 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
         <div className="flex flex-wrap justify-between gap-2 text-sm">
           <span>Subtotal dos itens</span><span>{formatBRL(totalItens)}</span>
         </div>
-        <Label htmlFor={`sale-total-${session.id}`}>Total final (R$)</Label>
-        <Input
-          id={`sale-total-${session.id}`}
-          type="number" step="0.01" min="0.01" max={totalItens}
-          value={negotiatedTotal === "" ? totalItens : negotiatedTotal}
-          onChange={(e) => changeTotal(e.target.value)}
-          disabled={!itens.length}
-        />
-        {pricing.discount > 0 && (
-          <div className="flex flex-wrap justify-between gap-2 text-sm font-medium text-primary">
-            <span>Desconto</span><span>− {formatBRL(pricing.discount)}</span>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor={`sale-total-${session.id}`}>Total final (R$)</Label>
+            <Input
+              id={`sale-total-${session.id}`}
+              type="number" step="0.01" min="0.01" max={totalItens}
+              value={negotiatedTotal === "" ? totalItens : negotiatedTotal}
+              onChange={(e) => changeTotal(e.target.value)}
+              disabled={!itens.length}
+            />
           </div>
+          <div className="space-y-1">
+            <Label htmlFor={`sale-desconto-${session.id}`}>Desconto (R$)</Label>
+            <Input
+              id={`sale-desconto-${session.id}`}
+              type="number" step="0.01" min="0" max={totalItens}
+              placeholder="0,00"
+              value={discountInput}
+              onChange={(e) => changeDiscount(e.target.value)}
+              disabled={!itens.length}
+            />
+          </div>
+        </div>
+        {pricing.discount > 0 && pricing.valid && (
+          <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+            Desconto aplicado: − {formatBRL(pricing.discount)} · cliente paga {formatBRL(total)}
+          </p>
         )}
         {negotiatedTotal !== "" && !pricing.valid && (
           <p className="text-sm text-destructive">O total deve ser maior que zero e não superar o subtotal.</p>

@@ -64,3 +64,23 @@ export function salePricing(subtotal: number, finalTotal: number) {
     && finalTotal > 0 && finalTotal <= subtotal;
   return { total: r2(finalTotal), discount: valid ? r2(subtotal - finalTotal) : 0, valid };
 }
+
+function isSaleItem(item: unknown): item is SaleItem {
+  if (typeof item !== "object" || item === null) return false;
+  if (!("tipo" in item) || !("descricao" in item) || !("quantidade" in item) || !("preco_unitario" in item)) return false;
+  return (
+    (item.tipo === "avulsa" || item.tipo === "produto" || item.tipo === "os")
+    && typeof item.descricao === "string"
+    && typeof item.quantidade === "number" && Number.isFinite(item.quantidade) && item.quantidade >= 0
+    && typeof item.preco_unitario === "number" && Number.isFinite(item.preco_unitario) && item.preco_unitario >= 0
+  );
+}
+
+/** Desconto de uma venda registrada: subtotal dos itens − total cobrado (0 se não houver). */
+export function saleRecordDiscount(itens: unknown, total: number) {
+  if (!Array.isArray(itens) || !Number.isFinite(total)) return 0;
+  const validItems = itens.filter(isSaleItem);
+  if (validItems.length !== itens.length) return 0;
+  const sub = saleItemsTotal(validItems);
+  return sub > total ? r2(sub - total) : 0;
+}
