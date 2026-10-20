@@ -1,0 +1,1 @@
+ALTER TABLE public.service_orders ADD COLUMN IF NOT EXISTS servicos_realizados text;

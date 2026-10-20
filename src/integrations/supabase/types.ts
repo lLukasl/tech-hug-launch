@@ -248,6 +248,7 @@ export type Database = {
           quantidade: number
           responsavel: string | null
           riscos: string[]
+          servicos_realizados: string | null
           status: string
           termos_garantia: string | null
           tipo_aparelho: string
@@ -286,6 +287,7 @@ export type Database = {
           quantidade?: number
           responsavel?: string | null
           riscos?: string[]
+          servicos_realizados?: string | null
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
@@ -324,6 +326,7 @@ export type Database = {
           quantidade?: number
           responsavel?: string | null
           riscos?: string[]
+          servicos_realizados?: string | null
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
