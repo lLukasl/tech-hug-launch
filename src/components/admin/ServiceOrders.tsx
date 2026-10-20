@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, MessageCircle, Plus, Printer, XCircle } from "lucide-react";
+import { Cpu, Loader2, MessageCircle, Plus, Printer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceOrderForm } from "@/components/admin/ServiceOrderForm";
 import { units } from "@/lib/units";
-import { CANCEL_MOTIVOS, OS_STATUS, shareOsLink, unitById, type OsStatus } from "@/lib/service-orders";
+import { CANCEL_MOTIVOS, LOCALIZACOES, OS_STATUS, PLACA_STATUS, diasParado, labelOf, shareOsLink, unitById, type BenchLog, type OsStatus } from "@/lib/service-orders";
+import { BenchDialog } from "@/components/admin/BenchDialog";
 
 const fsel = "h-10 rounded-md border border-input bg-background px-3 text-sm";
-type Row = { id: string; numero: number; created_at: string; loja: string; cliente_nome: string; modelo: string | null; marca: string | null; status: string };
+type Row = { id: string; numero: number; created_at: string; loja: string; cliente_nome: string; modelo: string | null; marca: string | null; status: string; localizacao?: string; responsavel?: string | null; placa_status?: string | null; historico_tecnico?: unknown };
 
 type Props = { userId: string; email: string; userLoja: string | null; isGlobal: boolean; isManager: boolean };
 
@@ -25,12 +26,14 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
   const [fLoja, setFLoja] = useState(isGlobal ? "" : (userLoja ?? ""));
   const [fStatus, setFStatus] = useState("");
   const [q, setQ] = useState("");
+  const [fPlaca, setFPlaca] = useState("");
+  const [bench, setBench] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["service-orders"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_orders")
-        .select("id, numero, created_at, loja, cliente_nome, modelo, marca, status")
+        .select("id, numero, created_at, loja, cliente_nome, modelo, marca, status, localizacao, responsavel, placa_status, historico_tecnico")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
@@ -68,6 +71,11 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
           <option value="">Todos os status</option>
           {OS_STATUS.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
         </select>
+        <select className={fsel} value={fPlaca} onChange={(e) => setFPlaca(e.target.value)}>
+          <option value="">Placa: todas</option>
+          <option value="__any">Somente bancada de placa</option>
+          {PLACA_STATUS.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
+        </select>
         <input className={fsel} placeholder="Buscar nº ou cliente" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
@@ -78,7 +86,7 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
       ) : (
         <ul className="mt-6 space-y-3">
           {data
-            .filter((o) => (!fLoja || o.loja === fLoja) && (!fStatus || o.status === fStatus) && (!q || String(o.numero) === q.replace("#", "").trim() || o.cliente_nome.toLowerCase().includes(q.toLowerCase())))
+            .filter((o) => (!fLoja || o.loja === fLoja) && (!fStatus || o.status === fStatus) && (!fPlaca || (fPlaca === "__any" ? !!o.placa_status : o.placa_status === fPlaca)) && (!q || String(o.numero) === q.replace("#", "").trim() || o.cliente_nome.toLowerCase().includes(q.toLowerCase())))
             .map((o) => (
             <li key={o.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card">
               <div className="min-w-0 flex-1">
@@ -87,6 +95,18 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
                   {new Date(o.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} ·{" "}
                   {unitById(o.loja)?.shortName ?? o.loja} · {[o.marca, o.modelo].filter(Boolean).join(" ")}
                 </p>
+                {(o.placa_status || (o.localizacao && o.localizacao !== "loja")) && (() => {
+                  const d = diasParado(o.created_at, (o.historico_tecnico as BenchLog[]) ?? []);
+                  return (
+                    <p className="mt-1 flex flex-wrap gap-1 text-xs">
+                      <span className="rounded-full bg-accent px-2 py-0.5 font-semibold text-accent-foreground">
+                        📍 {labelOf(LOCALIZACOES, o.localizacao)}{o.responsavel ? ` · ${o.responsavel}` : ""}
+                      </span>
+                      {o.placa_status && <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">{labelOf(PLACA_STATUS, o.placa_status)}</span>}
+                      {d >= 2 && <span className="rounded-full bg-destructive/10 px-2 py-0.5 font-semibold text-destructive">Parado há {d} dias</span>}
+                    </p>
+                  );
+                })()}
               </div>
               <select
                 className="h-9 rounded-md border border-input bg-background px-2 text-sm"
@@ -98,6 +118,9 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
+              <Button size="sm" variant="outline" onClick={() => setBench(o.id)}>
+                <Cpu className="mr-1 h-4 w-4" /> Bancada
+              </Button>
               <Button size="sm" variant="outline" asChild>
                 <Link to="/os/$id" params={{ id: o.id }} target="_blank">
                   <Printer className="mr-1 h-4 w-4" /> Imprimir / PDF
@@ -171,6 +194,8 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
           </div>
         </DialogContent>
       </Dialog>
+
+      <BenchDialog orderId={bench} email={email} onClose={() => setBench(null)} onSaved={refresh} />
 
       <CancelDialog
         order={canceling}
