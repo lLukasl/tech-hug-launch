@@ -6,10 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { units } from "@/lib/units";
 import { formatBRL } from "@/lib/products";
-import { FORMAS, periodRange, sumByForma, todaySP, type Pagamento, type Periodo } from "@/lib/finance";
+import { FORMAS, periodRange, saleRecordDiscount, sumByForma, todaySP, type Pagamento, type Periodo } from "@/lib/finance";
 import { OpenCash, SaleForm, Stat } from "@/components/admin/Finance";
 
 const sel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+
+const descontoLabel = (itens: unknown, total: number) => {
+  const d = saleRecordDiscount(itens, total);
+  return d > 0 ? ` · Desconto − ${formatBRL(d)}` : "";
+};
 
 export function Sales({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
   const qc = useQueryClient();
@@ -136,6 +141,7 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja }: { userId
                   {units.find((u) => u.id === s.loja)?.shortName ?? s.loja} ·{" "}
                   {s.pagamentos.map((p) => `${FORMAS.find((f) => f.value === p.forma)?.label} ${formatBRL(p.valor)}`).join(" + ")}
                   {isManager && s.vendedor_email && ` · ${s.vendedor_email}`}
+                  {descontoLabel(s.itens, Number(s.total))}
                 </p>
               </div>
               <span className="font-semibold">{formatBRL(Number(s.total))}</span>

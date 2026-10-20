@@ -66,9 +66,9 @@ const SELLER: Topic[] = [
   {
     title: "Dar desconto em uma venda",
     steps: [
-      "Depois de adicionar os itens, altere o campo \"Total final (R$)\" para o valor combinado com o cliente.",
+      "Depois de adicionar os itens, informe o valor do desconto no campo \"Desconto (R$)\" ou altere o \"Total final (R$)\" para o valor combinado com o cliente.",
       "O total não pode ser maior que a soma dos itens nem zero.",
-      "O desconto aparece no comprovante em PDF (Subtotal, Desconto e Total).",
+      "O desconto aplicado aparece na tela, na lista de vendas e no comprovante em PDF (Subtotal, Desconto e Total).",
     ],
   },
   {
