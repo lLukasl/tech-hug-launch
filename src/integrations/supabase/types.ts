@@ -222,7 +222,6 @@ export type Database = {
           cancelado_em: string | null
           cancelado_por: string | null
           cancelado_por_email: string | null
-          ciente_riscos: boolean
           ciente_termos: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -230,24 +229,16 @@ export type Database = {
           created_at: string
           criado_por: string | null
           defeito: string | null
-          estado_entrada: string
           garantia_dias: number
-          historico_tecnico: Json
           id: string
           itens: Json
-          localizacao: string
           loja: string
           marca: string | null
           modelo: string | null
           nao_deixou: string[]
           numero: number
           observacoes: string | null
-          placa_aprovado: boolean | null
-          placa_status: string | null
-          placa_valor: number | null
           quantidade: number
-          responsavel: string | null
-          riscos: string[]
           status: string
           termos_garantia: string | null
           tipo_aparelho: string
@@ -260,7 +251,6 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cancelado_por_email?: string | null
-          ciente_riscos?: boolean
           ciente_termos?: boolean
           cliente_nome: string
           cliente_telefone: string
@@ -268,24 +258,16 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           defeito?: string | null
-          estado_entrada?: string
           garantia_dias?: number
-          historico_tecnico?: Json
           id?: string
           itens?: Json
-          localizacao?: string
           loja: string
           marca?: string | null
           modelo?: string | null
           nao_deixou?: string[]
           numero?: number
           observacoes?: string | null
-          placa_aprovado?: boolean | null
-          placa_status?: string | null
-          placa_valor?: number | null
           quantidade?: number
-          responsavel?: string | null
-          riscos?: string[]
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
@@ -298,7 +280,6 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cancelado_por_email?: string | null
-          ciente_riscos?: boolean
           ciente_termos?: boolean
           cliente_nome?: string
           cliente_telefone?: string
@@ -306,24 +287,16 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           defeito?: string | null
-          estado_entrada?: string
           garantia_dias?: number
-          historico_tecnico?: Json
           id?: string
           itens?: Json
-          localizacao?: string
           loja?: string
           marca?: string | null
           modelo?: string | null
           nao_deixou?: string[]
           numero?: number
           observacoes?: string | null
-          placa_aprovado?: boolean | null
-          placa_status?: string | null
-          placa_valor?: number | null
           quantidade?: number
-          responsavel?: string | null
-          riscos?: string[]
           status?: string
           termos_garantia?: string | null
           tipo_aparelho?: string
