@@ -49,16 +49,16 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-bold">Ordens de serviço</h1>
-        <Button className="ml-auto" onClick={() => setCreating(true)}>
+        <Button className="w-full sm:ml-auto sm:w-auto" onClick={() => setCreating(true)}>
           <Plus className="mr-2 h-4 w-4" /> Nova Ordem de Serviço
         </Button>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {isGlobal ? (
-          <select className={fsel} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
+          <select className={`${fsel} w-full`} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
             <option value="">Todas as lojas</option>
             {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
           </select>
@@ -67,16 +67,16 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
             {unitById(fLoja)?.shortName ?? fLoja}
           </p>
         )}
-        <select className={fsel} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+        <select className={`${fsel} w-full`} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
           <option value="">Todos os status</option>
           {OS_STATUS.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
         </select>
-        <select className={fsel} value={fPlaca} onChange={(e) => setFPlaca(e.target.value)}>
+        <select className={`${fsel} w-full`} value={fPlaca} onChange={(e) => setFPlaca(e.target.value)}>
           <option value="">Placa: todas</option>
           <option value="__any">Somente bancada de placa</option>
           {PLACA_STATUS.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
         </select>
-        <input className={fsel} placeholder="Buscar nº ou cliente" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className={`${fsel} w-full min-w-0`} placeholder="Buscar nº ou cliente" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {isLoading ? (
@@ -88,10 +88,10 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
           {data
             .filter((o) => (!fLoja || o.loja === fLoja) && (!fStatus || o.status === fStatus) && (!fPlaca || (fPlaca === "__any" ? !!o.placa_status : o.placa_status === fPlaca)) && (!q || String(o.numero) === q.replace("#", "").trim() || o.cliente_nome.toLowerCase().includes(q.toLowerCase())))
             .map((o) => (
-            <li key={o.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card">
+            <li key={o.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card lg:flex-row lg:items-center">
               <div className="min-w-0 flex-1">
-                <p className="font-semibold">OS #{o.numero} — {o.cliente_nome}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="break-words font-semibold">OS #{o.numero} — {o.cliente_nome}</p>
+                <p className="break-words text-sm text-muted-foreground">
                   {new Date(o.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} ·{" "}
                   {unitById(o.loja)?.shortName ?? o.loja} · {[o.marca, o.modelo].filter(Boolean).join(" ")}
                 </p>
@@ -108,45 +108,48 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
                   );
                 })()}
               </div>
-              <select
-                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                value={o.status}
-                onChange={(e) => setStatus(o.id, e.target.value as OsStatus)}
-                disabled={o.status === "cancelada"}
-              >
-                {OS_STATUS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-              <Button size="sm" variant="outline" onClick={() => setBench(o.id)}>
-                <Cpu className="mr-1 h-4 w-4" /> Bancada
-              </Button>
-              <Button size="sm" variant="outline" asChild>
-                <Link to="/os/$id" params={{ id: o.id }} target="_blank">
-                  <Printer className="mr-1 h-4 w-4" /> Imprimir / PDF
-                </Link>
-              </Button>
-              <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => setSharing(o)}>
-                <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
-              </Button>
-              {o.status !== "cancelada" && o.status !== "entregue" && (
-                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCanceling(o)}>
-                  <XCircle className="mr-1 h-4 w-4" /> Cancelar
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:shrink-0 lg:flex-wrap lg:items-center">
+                <select
+                  className="col-span-2 h-9 w-full rounded-md border border-input bg-background px-2 text-sm sm:col-span-3 lg:w-auto"
+                  value={o.status}
+                  onChange={(e) => setStatus(o.id, e.target.value as OsStatus)}
+                  disabled={o.status === "cancelada"}
+                >
+                  {OS_STATUS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+                <Button size="sm" variant="outline" onClick={() => setBench(o.id)}>
+                  <Cpu className="mr-1 h-4 w-4" /> Bancada
                 </Button>
-              )}
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/os/$id" params={{ id: o.id }} target="_blank">
+                    <Printer className="mr-1 h-4 w-4" /> PDF
+                  </Link>
+                </Button>
+                <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => setSharing(o)}>
+                  <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
+                </Button>
+                {o.status !== "cancelada" && o.status !== "entregue" && (
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCanceling(o)}>
+                    <XCircle className="mr-1 h-4 w-4" /> Cancelar
+                  </Button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
       )}
 
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Nova ordem de serviço</DialogTitle>
           </DialogHeader>
           {creating && (
             <ServiceOrderForm
               userId={userId}
+              email={email}
               userLoja={userLoja}
               isGlobal={isGlobal}
               onDone={async (id) => {
