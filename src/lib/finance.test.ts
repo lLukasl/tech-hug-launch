@@ -21,12 +21,27 @@ describe("periodRange", () => {
     expect(sumByForma([{ pagamentos: [{ forma: "pix", valor: 10 }, { forma: "credito", valor: 5 }] }, { pagamentos: [{ forma: "pix", valor: 2.5 }] }]).pix).toBe(12.5));
 });
 
-import { saleItemsTotal } from "./finance";
+import { saleItemsTotal, salePricing } from "./finance";
 describe("venda com vários itens", () => {
   it("soma OS + acessórios extras", () => {
     expect(saleItemsTotal([
       { tipo: "os", descricao: "OS #1", quantidade: 1, preco_unitario: 250 },
       { tipo: "avulsa", descricao: "Película", quantidade: 2, preco_unitario: 29.9 },
     ])).toBe(309.8);
+  });
+});
+
+describe("total negociado", () => {
+  it("permite cobrar abaixo da soma sem alterar os itens", () => {
+    expect(salePricing(309.8, 280)).toEqual({ total: 280, discount: 29.8, valid: true });
+  });
+  it("mantém o total original quando não há desconto", () => {
+    expect(salePricing(309.8, 309.8)).toEqual({ total: 309.8, discount: 0, valid: true });
+  });
+  it("não permite total acima dos itens", () => {
+    expect(salePricing(309.8, 310).valid).toBe(false);
+  });
+  it("não permite total negativo, zero ou inválido", () => {
+    for (const total of [-1, 0, NaN, Infinity]) expect(salePricing(309.8, total).valid).toBe(false);
   });
 });

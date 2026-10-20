@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { Download, FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { buildCashCsv, downloadCsv } from "@/lib/cash-export";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
   todaySP,
   saleItemTotal,
   saleItemsTotal,
+  salePricing,
   type Pagamento,
   type SaleItem,
 } from "@/lib/finance";
@@ -26,9 +28,9 @@ type Totals = { credito: number; debito: number; pix: number; dinheiro: number; 
 const sel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 const formaLabel = (f: string) => FORMAS.find((x) => x.value === f)?.label ?? f;
 
-export function Finance({ userId, email, isManager }: { userId: string; email: string; isManager: boolean }) {
+export function Finance({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
   const qc = useQueryClient();
-  const [loja, setLoja] = useState(units[0].id);
+  const [loja, setLoja] = useState(isGlobal ? units[0].id : (userLoja ?? units[0].id));
   const [data, setData] = useState(todaySP());
   const isToday = data === todaySP();
   const key = ["cash", loja, data];
@@ -54,11 +56,17 @@ export function Finance({ userId, email, isManager }: { userId: string; email: s
         <h1 className="mr-auto text-2xl font-bold">Financeiro · Caixa</h1>
         <div className="space-y-1">
           <Label>Loja</Label>
-          <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.shortName}</option>
-            ))}
-          </select>
+          {isGlobal ? (
+            <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>{u.shortName}</option>
+              ))}
+            </select>
+          ) : (
+            <p className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
+              {units.find((u) => u.id === loja)?.shortName ?? loja}
+            </p>
+          )}
         </div>
         {isManager && (
           <div className="space-y-1">
@@ -112,6 +120,7 @@ export type Session = {
   id: string;
   loja: string;
   troco_inicial: number;
+  aberto_em?: string;
   status: string;
   dinheiro_contado: number | null;
   foto_maquininha: string | null;
@@ -173,6 +182,24 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
     onChange();
   };
 
+  const exportCsv = () => {
+    if (!totals) return;
+    const lojaName = units.find((u) => u.id === session.loja)?.name ?? session.loja;
+    const csv = buildCashCsv({
+      data: new Date(session.aberto_em ?? Date.now()).toLocaleDateString("pt-BR"),
+      loja: lojaName,
+      trocoInicial: Number(session.troco_inicial),
+      totals,
+      esperado,
+      dinheiroContado: session.dinheiro_contado == null ? null : Number(session.dinheiro_contado),
+      status: open ? "Aberto" : "Fechado",
+      sales: (sales ?? []).map((s) => ({ ...s, pagamentos: s.pagamentos as Pagamento[], total: Number(s.total) })),
+      withdrawals: (withdrawals ?? []).map((w) => ({ ...w, valor: Number(w.valor) })),
+      formaLabel,
+    });
+    downloadCsv(csv, `caixa-${session.loja}-${(session.aberto_em ?? new Date().toISOString()).slice(0, 10)}.csv`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -180,8 +207,13 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {open ? "CAIXA ABERTO" : "CAIXA FECHADO"}
         </span>
         <span className="text-sm text-muted-foreground">Troco inicial: {formatBRL(Number(session.troco_inicial))}</span>
+        {isManager && totals && (
+          <Button size="sm" variant="outline" className="ml-auto" onClick={exportCsv}>
+            <Download className="mr-1 h-4 w-4" /> Exportar caixa (Excel / Sheets)
+          </Button>
+        )}
         {!open && isManager && (
-          <Button size="sm" variant="outline" className="ml-auto" onClick={reopen}>
+          <Button size="sm" variant="outline" onClick={reopen}>
             <Unlock className="mr-1 h-4 w-4" /> Reabrir
           </Button>
         )}
@@ -192,7 +224,10 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {FORMAS.map((f) => (
             <Stat key={f.value} label={f.label} value={formatBRL(Number(totals[f.value]))} />
           ))}
-          <Stat label={`Total do dia (${totals.vendas} vendas)`} value={formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))} />
+          <div className="rounded-xl bg-cta p-3 text-cta-foreground shadow-card">
+            <p className="text-xs opacity-90">{`Total do dia (${totals.vendas} vendas)`}</p>
+            <p className="font-display text-lg font-bold">{formatBRL(FORMAS.reduce((a, f) => a + Number(totals[f.value]), 0))}</p>
+          </div>
           <Stat label="Sangrias" value={formatBRL(Number(totals.sangrias))} />
           <Stat label="Dinheiro esperado" value={formatBRL(esperado)} />
         </div>
@@ -332,15 +367,18 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     },
   });
 
+  const [negotiatedTotal, setNegotiatedTotal] = useState("");
   const used = new Set(itens.map((i) => i.ref).filter(Boolean));
   const push = (i: SaleItem) => {
     const next = [...itens, i];
     setItens(next);
+    setNegotiatedTotal("");
     setPags(pags.length === 1 ? [{ ...pags[0], valor: saleItemsTotal(next) }] : pags);
   };
   const removeAt = (k: number) => {
     const next = itens.filter((_, j) => j !== k);
     setItens(next);
+    setNegotiatedTotal("");
     if (pags.length === 1) setPags([{ ...pags[0], valor: saleItemsTotal(next) }]);
   };
   const pickProduct = (id: string) => {
@@ -363,11 +401,22 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   };
 
   const totalItens = saleItemsTotal(itens);
-  const total = pagamentosTotal(pags);
+  const pricing = salePricing(totalItens, negotiatedTotal === "" ? totalItens : Number(negotiatedTotal));
+  const total = pricing.total;
+  const totalPago = pagamentosTotal(pags);
+  const changeTotal = (value: string) => {
+    setNegotiatedTotal(value);
+    const nextTotal = value === "" ? totalItens : Number(value);
+    if (pags.length === 1 && Number.isFinite(nextTotal)) {
+      setPags([{ ...pags[0], valor: nextTotal }]);
+    }
+  };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itens.length) return toast.error("Adicione pelo menos um item.");
-    if (total !== totalItens) return toast.error(`Pagamento (${formatBRL(total)}) diferente do total dos itens (${formatBRL(totalItens)}).`);
+    if (!pricing.valid) return toast.error("Informe um total maior que zero e não superior à soma dos itens.");
+    if (pags.some((p) => !Number.isFinite(p.valor) || p.valor < 0)) return toast.error("Informe valores de pagamento válidos.");
+    if (totalPago !== total) return toast.error(`Pagamento (${formatBRL(totalPago)}) diferente do total final (${formatBRL(total)}).`);
     setBusy(true);
     const prod = itens.find((i) => i.tipo === "produto");
     const os = itens.find((i) => i.tipo === "os");
@@ -401,7 +450,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     toast.success("Venda lançada.", {
       action: { label: "Comprovante", onClick: () => window.open(`/comprovante/${sale.id}`, "_blank") },
     });
-    setItens([]); setCliente(""); setTelefone("");
+    setItens([]); setCliente(""); setTelefone(""); setNegotiatedTotal("");
     setPags([{ forma: "pix", valor: 0 }]);
     ["products", "service-orders", "sale-products", "sale-os", "sales-list"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     onDone();
@@ -464,6 +513,28 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
         <Input placeholder="Telefone (opcional)" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
       </div>
 
+      <div className="space-y-2 border-t border-border pt-3">
+        <div className="flex flex-wrap justify-between gap-2 text-sm">
+          <span>Subtotal dos itens</span><span>{formatBRL(totalItens)}</span>
+        </div>
+        <Label htmlFor={`sale-total-${session.id}`}>Total final (R$)</Label>
+        <Input
+          id={`sale-total-${session.id}`}
+          type="number" step="0.01" min="0.01" max={totalItens}
+          value={negotiatedTotal === "" ? totalItens : negotiatedTotal}
+          onChange={(e) => changeTotal(e.target.value)}
+          disabled={!itens.length}
+        />
+        {pricing.discount > 0 && (
+          <div className="flex flex-wrap justify-between gap-2 text-sm font-medium text-primary">
+            <span>Desconto</span><span>− {formatBRL(pricing.discount)}</span>
+          </div>
+        )}
+        {negotiatedTotal !== "" && !pricing.valid && (
+          <p className="text-sm text-destructive">O total deve ser maior que zero e não superar o subtotal.</p>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label>Pagamento</Label>
         {pags.map((p, i) => (
@@ -482,6 +553,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
               step="0.01"
               min="0"
               placeholder="Valor"
+              aria-label={`Valor do pagamento ${i + 1}`}
               value={p.valor || ""}
               onChange={(e) => setPags(pags.map((x, j) => (j === i ? { ...x, valor: Number(e.target.value) } : x)))}
             />
@@ -496,8 +568,13 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
           <Plus className="mr-1 h-4 w-4" /> Dividir pagamento
         </Button>
       </div>
-      <div className="flex items-center justify-between">
-        <span className="font-semibold">Total: {formatBRL(total)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-semibold">Total: {formatBRL(total)}</p>
+          <p className={`text-sm ${totalPago === total ? "text-muted-foreground" : "text-destructive"}`}>
+            Pagamentos: {formatBRL(totalPago)}
+          </p>
+        </div>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Lançar
         </Button>

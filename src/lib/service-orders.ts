@@ -1,6 +1,6 @@
 import { units } from "@/lib/units";
 
-export type OsStatus = "aberta" | "em_andamento" | "pronta" | "entregue";
+export type OsStatus = "aberta" | "em_andamento" | "pronta" | "entregue" | "cancelada";
 export type OsItem = { quantidade: number; discriminacao: string; preco_unitario: number };
 
 export const OS_STATUS: { value: OsStatus; label: string }[] = [
@@ -8,7 +8,50 @@ export const OS_STATUS: { value: OsStatus; label: string }[] = [
   { value: "em_andamento", label: "Em andamento" },
   { value: "pronta", label: "Pronta" },
   { value: "entregue", label: "Entregue" },
+  { value: "cancelada", label: "Cancelada" },
 ];
+
+export const CANCEL_MOTIVOS = [
+  "Preço alto",
+  "Demora no prazo",
+  "Falta de peças",
+  "Desistência do cliente",
+  "Aparelho inviável",
+  "Outro",
+];
+
+export const LOCALIZACOES = [
+  { value: "loja", label: "Na loja de origem" },
+  { value: "transito", label: "Em trânsito" },
+  { value: "laboratorio", label: "No laboratório de placa" },
+  { value: "retornado", label: "Retornou à loja" },
+];
+
+export const PLACA_STATUS = [
+  { value: "encaminhado", label: "Encaminhado para placa" },
+  { value: "diagnostico", label: "Aguardando diagnóstico" },
+  { value: "peca", label: "Aguardando peça / CI" },
+  { value: "aprovacao", label: "Aguardando aprovação do cliente" },
+  { value: "testes", label: "Recuperado / em testes" },
+  { value: "concluido", label: "Concluído" },
+  { value: "inviavel", label: "Inviável / sem reparo" },
+];
+
+export type BenchLog = { at: string; by: string; texto: string; local?: string; status?: string | null; responsavel?: string | null };
+
+export const labelOf = (list: { value: string; label: string }[], v?: string | null) =>
+  list.find((x) => x.value === v)?.label ?? v ?? "—";
+
+/** Dias desde o último registro (ou abertura) — usado para destacar aparelhos parados. */
+export function diasParado(createdAt: string, logs: BenchLog[], now = new Date()) {
+  const last = logs.length ? logs[logs.length - 1].at : createdAt;
+  return Math.floor((now.getTime() - new Date(last).getTime()) / 86400000);
+}
+
+export function placaWhatsappMsg(o: { numero: number; cliente_nome: string; modelo?: string | null; valor: number | null }) {
+  const v = o.valor != null ? o.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "a confirmar";
+  return `Olá, ${o.cliente_nome}! Aqui é da Clínica Cell, sobre a OS #${o.numero}${o.modelo ? ` (${o.modelo})` : ""}. Durante o diagnóstico identificamos um defeito interno na placa do aparelho. O valor do reparo de placa é ${v}. Podemos prosseguir? Responda SIM para autorizar.`;
+}
 
 export const TIPOS_APARELHO = [
   { value: "celular", label: "Celular" },
@@ -30,6 +73,23 @@ export const NAO_DEIXOU = [
   { value: "tampa_traseira", label: "Tampa traseira" },
   { value: "gaveta_chip", label: "Gaveta de chip" },
 ];
+
+export const ESTADO_ENTRADA = [
+  { value: "ligando", label: "Ligando normalmente" },
+  { value: "desligado", label: "Desligado / não liga" },
+  { value: "liquido", label: "Teve contato com líquido ou umidade" },
+];
+
+export const RISCOS_ABERTURA = [
+  { value: "sem_teste", label: "Não foi possível testar câmeras, som, rede, biometria e sensores antes da abertura" },
+  { value: "tela_fragil", label: "Tela já trincada/fragilizada pode danificar durante a abertura" },
+  { value: "carcaca", label: "Carcaça ou chassi empenado/amassado" },
+  { value: "oxidacao", label: "Suspeita de oxidação interna" },
+  { value: "bateria_estufada", label: "Bateria estufada ou desgastada" },
+  { value: "reparo_anterior", label: "Sinais de reparo anterior por terceiros" },
+];
+
+export const AVISO_RISCOS = `Abrir um aparelho pode revelar ou desencadear falhas em outros componentes além do serviço contratado (ex.: tela, flex, botões, câmeras, biometria, bateria), principalmente em aparelhos que sofreram quedas, contato com líquidos ou reparos anteriores. Quando o aparelho dá entrada DESLIGADO ou sem funcionar, não é possível testar suas funções antes do serviço. Nesses casos, a Clínica Cell não se responsabiliza por defeitos ocultos ou pré-existentes constatados após a abertura. Qualquer novo defeito encontrado será informado ao cliente antes de qualquer cobrança adicional.`;
 
 /** 7 dias: bateria, pilha, carregador e fone de ouvido. Demais serviços: 30–120 dias. */
 export const GARANTIA_OPCOES = [
