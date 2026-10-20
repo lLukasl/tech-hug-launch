@@ -58,7 +58,7 @@ const SELLER: Topic[] = [
       "Informe onde o aparelho está (loja, em trânsito, laboratório de placa ou de volta à loja) e com quem está.",
       "Se virou problema de placa, escolha o status (encaminhado, diagnóstico, aguardando peça, aguardando cliente, em testes, concluído ou inviável).",
       "Escreva o que foi feito ou medido e clique em \"Salvar registro\". Tudo fica no Histórico técnico com data e seu usuário.",
-      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\": o WhatsApp abre já com a mensagem pronta para o número da OS — basta enviar. Depois marque se o cliente aprovou.",
+      "Informe o valor do reparo de placa e use \"Gerar mensagem para o cliente\": a mensagem completa aparece para revisar, copiar ou abrir direto no WhatsApp do cliente. Depois marque se o cliente aprovou.",
       "Use o filtro \"Somente bancada de placa\" para ver só esses aparelhos. A etiqueta vermelha \"Parado há X dias\" mostra aparelhos sem registro há 2 dias ou mais.",
     ],
 
