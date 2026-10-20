@@ -41,6 +41,8 @@ import {
   createMember,
   hasSuperadmin,
   setMemberActive,
+  deleteMember,
+  setMemberLoja,
 } from "@/lib/admin.functions";
 
 const logo = "/clinica-cell-logo.jpeg";
@@ -243,6 +245,35 @@ function LoginForm() {
           {isSetup ? "Criar e entrar" : "Entrar"}
         </Button>
       </form>
+      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir membro</AlertDialogTitle>
+            <AlertDialogDescription>
+              A conta {removing?.email} será excluída e perderá o acesso. As vendas e ordens já registradas continuam no histórico.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!removing) return;
+                try {
+                  await remove({ data: { userId: removing.user_id } });
+                  toast.success("Membro excluído.");
+                  qc.invalidateQueries({ queryKey: ["members"] });
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Erro ao excluir.");
+                } finally {
+                  setRemoving(null);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -280,7 +311,7 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">Produtos do encarte</h1>
         <div className="ml-auto flex gap-2">
-          {role !== "member" && (
+          {(role === "superadmin" || role === "supervisor") && (
             <Button variant="outline" onClick={() => setShowTeam(true)}>
               <Users className="mr-2 h-4 w-4" /> Equipe
             </Button>
@@ -368,9 +399,9 @@ function Dashboard({ role, userId }: { role: Role; userId: string }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {role !== "member" && (
+      {(role === "superadmin" || role === "supervisor") && (
         <Dialog open={showTeam} onOpenChange={setShowTeam}>
-          <DialogContent>
+          <DialogContent className="max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Equipe</DialogTitle>
             </DialogHeader>
@@ -393,6 +424,9 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
   const qc = useQueryClient();
   const create = useServerFn(createMember);
   const setActive = useServerFn(setMemberActive);
+  const remove = useServerFn(deleteMember);
+  const changeLoja = useServerFn(setMemberLoja);
+  const [removing, setRemoving] = useState<{ user_id: string; email: string | null } | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newRole, setNewRole] = useState<"member" | "gerente" | "supervisor">("member");
@@ -434,7 +468,7 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
         {members?.map((m) => (
           <li
             key={m.user_id}
-            className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3 text-sm"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.email}</p>
@@ -443,21 +477,52 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
                 {m.loja && ` · ${units.find((u) => u.id === m.loja)?.shortName ?? m.loja}`}
               </p>
             </div>
-            {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role === "member") && (
-              <label className="flex items-center gap-2">
-                <Switch
-                  checked={m.active}
-                  onCheckedChange={async (v) => {
-                    try {
-                      await setActive({ data: { userId: m.user_id, active: v } });
-                      qc.invalidateQueries({ queryKey: ["members"] });
-                    } catch (err) {
-                      toast.error(err instanceof Error ? err.message : "Erro.");
-                    }
-                  }}
-                />
-                {m.active ? "Ativo" : "Desativado"}
-              </label>
+            {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role !== "supervisor") && (
+              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                {(m.role === "member" || m.role === "gerente") && (
+                  <select
+                    aria-label="Loja associada"
+                    className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+                    value={m.loja ?? ""}
+                    onChange={async (e) => {
+                      try {
+                        await changeLoja({ data: { userId: m.user_id, loja: e.target.value } });
+                        toast.success("Loja atualizada.");
+                        qc.invalidateQueries({ queryKey: ["members"] });
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Erro.");
+                      }
+                    }}
+                  >
+                    {!m.loja && <option value="">Sem loja</option>}
+                    {units.map((u) => (
+                      <option key={u.id} value={u.id}>{u.shortName}</option>
+                    ))}
+                  </select>
+                )}
+                <label className="flex items-center gap-2 text-xs">
+                  <Switch
+                    checked={m.active}
+                    onCheckedChange={async (v) => {
+                      try {
+                        await setActive({ data: { userId: m.user_id, active: v } });
+                        qc.invalidateQueries({ queryKey: ["members"] });
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Erro.");
+                      }
+                    }}
+                  />
+                  {m.active ? "Ativo" : "Desativado"}
+                </label>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Excluir membro"
+                  onClick={() => setRemoving({ user_id: m.user_id, email: m.email })}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             )}
           </li>
         ))}
@@ -505,6 +570,35 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Criar conta
         </Button>
       </form>
+      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir membro</AlertDialogTitle>
+            <AlertDialogDescription>
+              A conta {removing?.email} será excluída e perderá o acesso. As vendas e ordens já registradas continuam no histórico.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!removing) return;
+                try {
+                  await remove({ data: { userId: removing.user_id } });
+                  toast.success("Membro excluído.");
+                  qc.invalidateQueries({ queryKey: ["members"] });
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Erro ao excluir.");
+                } finally {
+                  setRemoving(null);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
