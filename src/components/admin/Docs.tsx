@@ -30,10 +30,22 @@ const SELLER: Topic[] = [
       "Adicione os serviços (quantidade, descrição, preço) e escolha a garantia.",
       "Colete as assinaturas da Clínica Cell e do cliente e salve.",
       "Use o botão de PDF/WhatsApp para enviar a OS ao cliente.",
+      "Dá para abrir a OS pelo celular ou tablet do balcão: os campos e os filtros se ajustam ao tamanho da tela.",
+    ],
+  },
+  {
+    title: "Triagem de placa no balcão",
+    steps: [
+      "Na nova OS, em \"Tipo de atendimento\" escolha \"Suspeita de problema de placa\". Marcando \"Reparo padrão (tela, conector, bateria…)\", a OS segue a sequência normal.",
+      "Marque ao menos um sintoma: não liga / consumo zerado, em curto / esquenta, reinicia sozinho / não inicia o sistema, sem sinal de rede, sem áudio ou microfone, não carrega mesmo com conector novo, contato com líquido / oxidação, ou outro.",
+      "Informe se o aparelho já foi aberto em outra assistência (Sim, Não ou Não sabe), o consumo na fonte (ex.: 0,15A travado) e o valor que o cliente já aprovou.",
+      "Ao salvar, a OS entra direto na bancada de placa como \"Aguardando diagnóstico\" e a triagem fica registrada no Histórico técnico, com data e seu usuário.",
+      "Na lista de OS, use o filtro \"Placa: todas\" para ver um estágio específico (encaminhado, aguardando peça, aguardando aprovação etc.) ou \"Somente bancada de placa\" para ver só esses aparelhos.",
     ],
   },
   {
     title: "Atualizar o status de uma OS",
+
     steps: [
       "Na lista de OS, altere o status: Aberta → Em andamento → Pronta → Entregue.",
       "Ao vender uma OS pela aba Vendas, ela é marcada como Entregue automaticamente.",
