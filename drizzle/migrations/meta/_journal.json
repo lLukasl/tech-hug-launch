@@ -8,6 +8,13 @@
       "when": 1792441545184,
       "tag": "0000_os_entry_risks",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792500149487,
+      "tag": "0001_os_bancada_placa",
+      "breakpoints": true
     }
   ]
 }

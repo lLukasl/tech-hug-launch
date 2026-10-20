@@ -232,15 +232,21 @@ export type Database = {
           defeito: string | null
           estado_entrada: string
           garantia_dias: number
+          historico_tecnico: Json
           id: string
           itens: Json
+          localizacao: string
           loja: string
           marca: string | null
           modelo: string | null
           nao_deixou: string[]
           numero: number
           observacoes: string | null
+          placa_aprovado: boolean | null
+          placa_status: string | null
+          placa_valor: number | null
           quantidade: number
+          responsavel: string | null
           riscos: string[]
           status: string
           termos_garantia: string | null
@@ -264,15 +270,21 @@ export type Database = {
           defeito?: string | null
           estado_entrada?: string
           garantia_dias?: number
+          historico_tecnico?: Json
           id?: string
           itens?: Json
+          localizacao?: string
           loja: string
           marca?: string | null
           modelo?: string | null
           nao_deixou?: string[]
           numero?: number
           observacoes?: string | null
+          placa_aprovado?: boolean | null
+          placa_status?: string | null
+          placa_valor?: number | null
           quantidade?: number
+          responsavel?: string | null
           riscos?: string[]
           status?: string
           termos_garantia?: string | null
@@ -296,15 +308,21 @@ export type Database = {
           defeito?: string | null
           estado_entrada?: string
           garantia_dias?: number
+          historico_tecnico?: Json
           id?: string
           itens?: Json
+          localizacao?: string
           loja?: string
           marca?: string | null
           modelo?: string | null
           nao_deixou?: string[]
           numero?: number
           observacoes?: string | null
+          placa_aprovado?: boolean | null
+          placa_status?: string | null
+          placa_valor?: number | null
           quantidade?: number
+          responsavel?: string | null
           riscos?: string[]
           status?: string
           termos_garantia?: string | null
