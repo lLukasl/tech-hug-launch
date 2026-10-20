@@ -142,7 +142,7 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
       )}
 
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Nova ordem de serviço</DialogTitle>
           </DialogHeader>
