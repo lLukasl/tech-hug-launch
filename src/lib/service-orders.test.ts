@@ -13,3 +13,11 @@ describe("ordens de serviço", () => {
     expect(url.startsWith("https://wa.me/5561994582288?text=")).toBe(true);
   });
 });
+
+import { applyBenchToItems as _ab, ordersTotal as _ot } from "./service-orders";
+describe("bench items", () => {
+  const items = [{ quantidade: 1, discriminacao: "Troca de tela", preco_unitario: 300 }];
+  it("adds board repair to total", () => expect(_ot(_ab(items, [], 250, null))).toBe(550));
+  it("drops unnecessary initial service", () => expect(_ot(_ab(items, [0], 250, true))).toBe(250));
+  it("excludes rejected board repair", () => expect(_ot(_ab(items, [], 250, false))).toBe(300));
+});
