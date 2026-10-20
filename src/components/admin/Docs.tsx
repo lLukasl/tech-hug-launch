@@ -54,13 +54,14 @@ const SELLER: Topic[] = [
   {
     title: "Bancada e problemas de placa",
     steps: [
-      "Na lista de OS, clique em \"Bancada\" no aparelho.",
+      "Na lista de OS, clique em \"Bancada\" no aparelho. Se a OS foi aberta com triagem de placa, ela já chega aqui como \"Aguardando diagnóstico\", com a triagem no Histórico técnico.",
       "Informe onde o aparelho está (loja, em trânsito, laboratório de placa ou de volta à loja) e com quem está.",
       "Se virou problema de placa, escolha o status (encaminhado, diagnóstico, aguardando peça, aguardando cliente, em testes, concluído ou inviável).",
       "Escreva o que foi feito ou medido e clique em \"Salvar registro\". Tudo fica no Histórico técnico com data e seu usuário.",
-      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\" para pedir a aprovação pelo WhatsApp. Depois marque se o cliente aprovou.",
+      "Informe o valor do reparo de placa e use \"Enviar laudo ao cliente\": o WhatsApp abre já com a mensagem pronta para o número da OS — basta enviar. Depois marque se o cliente aprovou.",
       "Use o filtro \"Somente bancada de placa\" para ver só esses aparelhos. A etiqueta vermelha \"Parado há X dias\" mostra aparelhos sem registro há 2 dias ou mais.",
     ],
+
   },
   {
     title: "Dar desconto em uma venda",
