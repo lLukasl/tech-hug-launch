@@ -21,7 +21,7 @@ describe("periodRange", () => {
     expect(sumByForma([{ pagamentos: [{ forma: "pix", valor: 10 }, { forma: "credito", valor: 5 }] }, { pagamentos: [{ forma: "pix", valor: 2.5 }] }]).pix).toBe(12.5));
 });
 
-import { saleItemsTotal, salePricing } from "./finance";
+import { saleItemsTotal, salePricing, saleRecordDiscount } from "./finance";
 describe("venda com vários itens", () => {
   it("soma OS + acessórios extras", () => {
     expect(saleItemsTotal([
@@ -43,5 +43,14 @@ describe("total negociado", () => {
   });
   it("não permite total negativo, zero ou inválido", () => {
     for (const total of [-1, 0, NaN, Infinity]) expect(salePricing(309.8, total).valid).toBe(false);
+  });
+  it("informa o desconto aplicado em uma venda registrada", () => {
+    expect(saleRecordDiscount([{ tipo: "avulsa", descricao: "Item", quantidade: 1, preco_unitario: 309.8 }], 280)).toBe(29.8);
+    expect(saleRecordDiscount([{ tipo: "avulsa", descricao: "Item", quantidade: 1, preco_unitario: 100 }], 100)).toBe(0);
+  });
+  it("ignora dados inválidos de itens ou total sem quebrar o resumo", () => {
+    expect(saleRecordDiscount(null, 10)).toBe(0);
+    expect(saleRecordDiscount([{ quantidade: 1 }], 10)).toBe(0);
+    expect(saleRecordDiscount([], NaN)).toBe(0);
   });
 });
