@@ -67,9 +67,8 @@ export const createMember = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await assertGlobal(context);
     if (data.role === "supervisor") await assertSuperadmin(context);
-    else if (data.role === "gerente") await assertGlobal(context);
-    else await assertManager(context);
     let loja = data.role === "supervisor" ? null : (data.loja ?? null);
     if (data.role !== "supervisor" && !loja) throw new Error("Escolha a unidade da conta.");
     const { data: isGlobal } = await context.supabase.rpc("is_global", { _user_id: context.userId });
@@ -94,7 +93,7 @@ export const setMemberActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertManager(context);
+    await assertGlobal(context);
     if (data.userId === context.userId)
       throw new Error("Você não pode desativar sua própria conta.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -113,5 +112,41 @@ export const setMemberActive = createServerFn({ method: "POST" })
     await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       ban_duration: data.active ? "none" : "876000h",
     });
+    return { ok: true };
+  });
+
+async function loadTarget(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
+  return { supabaseAdmin, target: data };
+}
+
+/** Exclui definitivamente a conta. Só superadmin e supervisor. */
+export const deleteMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertGlobal(context);
+    if (data.userId === context.userId) throw new Error("Você não pode excluir sua própria conta.");
+    const { supabaseAdmin, target } = await loadTarget(data.userId);
+    if (!target || target.role === "superadmin") throw new Error("Conta não pode ser excluída.");
+    if (target.role === "supervisor") await assertSuperadmin(context);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Altera a loja associada de vendedor/gerente. Só superadmin e supervisor. */
+export const setMemberLoja = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ userId: z.string().uuid(), loja: z.string().min(1).max(50) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertGlobal(context);
+    const { supabaseAdmin, target } = await loadTarget(data.userId);
+    if (!target || target.role === "superadmin" || target.role === "supervisor")
+      throw new Error("Essa conta não tem loja associada.");
+    const { error } = await supabaseAdmin.from("user_roles").update({ loja: data.loja }).eq("user_id", data.userId);
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
