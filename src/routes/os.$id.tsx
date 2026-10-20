@@ -134,6 +134,13 @@ function OsPrint() {
         </table>
       </section>
 
+      {o.servicos_realizados && (
+        <section className="border-t border-border py-4">
+          <h2 className="mb-1 font-semibold">Serviços realizados</h2>
+          <p className="whitespace-pre-line">{o.servicos_realizados}</p>
+        </section>
+      )}
+
       <section className="border-t border-border py-4">
         <h2 className="font-semibold">Garantia: {o.garantia_dias} dias</h2>
         <p className="mt-2 whitespace-pre-line text-xs leading-relaxed">{o.termos_garantia}</p>

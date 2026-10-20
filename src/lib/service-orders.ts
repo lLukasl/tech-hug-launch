@@ -53,6 +53,25 @@ export function placaWhatsappMsg(o: { numero: number; cliente_nome: string; mode
   return `Olá, ${o.cliente_nome}! Aqui é da Clínica Cell, sobre a OS #${o.numero}${o.modelo ? ` (${o.modelo})` : ""}. Durante o diagnóstico identificamos um defeito interno na placa do aparelho. O valor do reparo de placa é ${v}. Podemos prosseguir? Responda SIM para autorizar.`;
 }
 
+export function laudoClienteMsg(o: { numero: number; cliente_nome: string; marca?: string | null; modelo?: string | null; defeito?: string | null; servicos_realizados?: string | null; placa_status_label?: string | null; valor: number | null; total?: number | null; garantia_dias?: number | null; loja_nome?: string | null; loja_tel?: string | null }) {
+  const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const l = [
+    `Olá, ${o.cliente_nome}! Aqui é da Clínica Cell${o.loja_nome ? ` – ${o.loja_nome}` : ""}.`,
+    "",
+    `*Laudo técnico – OS #${o.numero}*`,
+    `Aparelho: ${[o.marca, o.modelo].filter(Boolean).join(" ") || "—"}`,
+  ];
+  if (o.defeito) l.push(`Defeito relatado: ${o.defeito}`);
+  if (o.placa_status_label) l.push(`Situação atual: ${o.placa_status_label}`);
+  if (o.servicos_realizados) l.push(`Diagnóstico / serviços: ${o.servicos_realizados}`);
+  if (o.valor != null) l.push(`Valor do reparo adicional: ${brl(o.valor)}`);
+  if (o.total) l.push(`Valor total do orçamento: ${brl(o.total + (o.valor ?? 0))}`);
+  if (o.garantia_dias) l.push(`Garantia: ${o.garantia_dias} dias`);
+  l.push("", o.valor != null ? "Podemos prosseguir com o reparo? Responda *SIM* para autorizar." : "Qualquer dúvida, estamos à disposição.");
+  if (o.loja_tel) l.push(`Contato da loja: ${o.loja_tel}`);
+  return l.join("\n");
+}
+
 export const TIPOS_APARELHO = [
   { value: "celular", label: "Celular" },
   { value: "tablet", label: "Tablet" },

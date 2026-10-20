@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, MessageCircle } from "lucide-react";
+import { Copy, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LOCALIZACOES, PLACA_STATUS, labelOf, placaWhatsappMsg, type BenchLog } from "@/lib/service-orders";
+import { LOCALIZACOES, PLACA_STATUS, labelOf, laudoClienteMsg, ordersTotal, unitById, type BenchLog, type OsItem } from "@/lib/service-orders";
 
 const fsel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 
@@ -21,7 +21,7 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_orders")
-        .select("id, numero, cliente_nome, cliente_telefone, modelo, localizacao, responsavel, placa_status, placa_valor, placa_aprovado, historico_tecnico")
+        .select("id, numero, cliente_nome, cliente_telefone, modelo, localizacao, responsavel, placa_status, placa_valor, placa_aprovado, historico_tecnico, marca, defeito, servicos_realizados, garantia_dias, loja, itens")
         .eq("id", orderId!)
         .single();
       if (error) throw error;
@@ -34,6 +34,8 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
   const [valor, setValor] = useState("");
   const [aprov, setAprov] = useState("");
   const [nota, setNota] = useState("");
+  const [realizados, setRealizados] = useState("");
+  const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -44,13 +46,15 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
     setValor(o.placa_valor != null ? String(o.placa_valor) : "");
     setAprov(o.placa_aprovado == null ? "" : o.placa_aprovado ? "sim" : "nao");
     setNota("");
+    setRealizados(o.servicos_realizados ?? "");
+    setMsg("");
   }, [o]);
 
   const logs = (o?.historico_tecnico as BenchLog[] | undefined) ?? [];
 
   const save = async () => {
     if (!o) return;
-    const changed = local !== o.localizacao || resp !== (o.responsavel ?? "") || status !== (o.placa_status ?? "");
+    const changed = realizados !== (o.servicos_realizados ?? "") || local !== o.localizacao || resp !== (o.responsavel ?? "") || status !== (o.placa_status ?? "");
     if (!nota.trim() && !changed) return toast.error("Descreva o que foi feito ou altere a localização/status.");
     setBusy(true);
     const entry: BenchLog = { at: new Date().toISOString(), by: email, texto: nota.trim(), local, status: status || null, responsavel: resp || null };
@@ -62,7 +66,8 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
         placa_status: status || null,
         placa_valor: valor ? Number(valor.replace(",", ".")) : null,
         placa_aprovado: aprov === "" ? null : aprov === "sim",
-        historico_tecnico: [...logs, entry],
+        servicos_realizados: realizados.trim() || null,
+        historico_tecnico: nota.trim() || local !== o.localizacao || status !== (o.placa_status ?? "") ? [...logs, entry] : logs,
       })
       .eq("id", o.id);
     setBusy(false);
@@ -72,11 +77,20 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
     onSaved();
   };
 
-  const wa = o
-    ? `https://wa.me/55${o.cliente_telefone.replace(/\D/g, "")}?text=${encodeURIComponent(
-        placaWhatsappMsg({ numero: o.numero, cliente_nome: o.cliente_nome, modelo: o.modelo, valor: valor ? Number(valor.replace(",", ".")) : null }),
-      )}`
-    : "#";
+  const gerarMsg = () => {
+    if (!o) return;
+    const u = unitById(o.loja);
+    setMsg(laudoClienteMsg({
+      numero: o.numero, cliente_nome: o.cliente_nome, marca: o.marca, modelo: o.modelo, defeito: o.defeito,
+      servicos_realizados: realizados.trim() || null,
+      placa_status_label: status ? labelOf(PLACA_STATUS, status) : null,
+      valor: valor ? Number(valor.replace(",", ".")) : null,
+      total: ordersTotal((o.itens as OsItem[]) ?? []), garantia_dias: o.garantia_dias,
+      loja_nome: u?.name, loja_tel: u?.phone,
+    }));
+  };
+  const copiar = async () => { await navigator.clipboard.writeText(msg); toast.success("Mensagem copiada — cole no WhatsApp do cliente."); };
+  const wa = o ? `https://wa.me/55${o.cliente_telefone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}` : "#";
 
   return (
     <Dialog open={!!orderId} onOpenChange={(v) => !v && onClose()}>
@@ -119,15 +133,29 @@ export function BenchDialog({ orderId, email, onClose, onSaved }: Props) {
                 </select>
               </div>
               <div className="flex items-end">
-                <Button variant="outline" className="w-full" asChild>
-                  <a href={wa} target="_blank" rel="noreferrer">
-                    <MessageCircle className="mr-2 h-4 w-4" /> Enviar laudo ao cliente
-                  </a>
+                <Button variant="outline" className="w-full" onClick={gerarMsg}>
+                  <MessageCircle className="mr-2 h-4 w-4" /> Gerar mensagem para o cliente
                 </Button>
               </div>
             </div>
+            {msg && (
+              <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                <Label>Mensagem para encaminhar ao cliente (pode editar)</Label>
+                <Textarea rows={9} value={msg} onChange={(e) => setMsg(e.target.value)} />
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={copiar}><Copy className="mr-2 h-4 w-4" /> Copiar mensagem</Button>
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={wa} target="_blank" rel="noreferrer"><MessageCircle className="mr-2 h-4 w-4" /> Abrir WhatsApp do cliente</a>
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="space-y-1">
-              <Label>O que foi feito / medido</Label>
+              <Label>Serviços realizados (aparece no PDF do cliente)</Label>
+              <Textarea rows={2} value={realizados} onChange={(e) => setRealizados(e.target.value)} placeholder="Ex.: Substituição do conector de carga e limpeza interna." />
+            </div>
+            <div className="space-y-1">
+              <Label>Anotação técnica interna (não vai para o cliente)</Label>
               <Textarea rows={3} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Ex.: Trocada tela e bateria, sem imagem. Curto na linha principal, enviado ao laboratório." />
             </div>
             <div className="flex justify-end">
