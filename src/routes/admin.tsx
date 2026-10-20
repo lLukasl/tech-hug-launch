@@ -245,35 +245,6 @@ function LoginForm() {
           {isSetup ? "Criar e entrar" : "Entrar"}
         </Button>
       </form>
-      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir membro</AlertDialogTitle>
-            <AlertDialogDescription>
-              A conta {removing?.email} será excluída e perderá o acesso. As vendas e ordens já registradas continuam no histórico.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (!removing) return;
-                try {
-                  await remove({ data: { userId: removing.user_id } });
-                  toast.success("Membro excluído.");
-                  qc.invalidateQueries({ queryKey: ["members"] });
-                } catch (err) {
-                  toast.error(err instanceof Error ? err.message : "Erro ao excluir.");
-                } finally {
-                  setRemoving(null);
-                }
-              }}
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
@@ -570,6 +541,35 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Criar conta
         </Button>
       </form>
+      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir membro</AlertDialogTitle>
+            <AlertDialogDescription>
+              A conta {removing?.email} será excluída e perderá o acesso. As vendas e ordens já registradas continuam no histórico.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!removing) return;
+                try {
+                  await remove({ data: { userId: removing.user_id } });
+                  toast.success("Membro excluído.");
+                  qc.invalidateQueries({ queryKey: ["members"] });
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Erro ao excluir.");
+                } finally {
+                  setRemoving(null);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
