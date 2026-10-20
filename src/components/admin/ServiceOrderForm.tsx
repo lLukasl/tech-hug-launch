@@ -27,7 +27,23 @@ import {
 const selectCls =
   "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
-export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userId: string; userLoja?: string | null; isGlobal?: boolean; onDone: (id: string) => void }) {
+const SINTOMAS_PLACA = [
+  "Não liga / consumo zerado",
+  "Em curto / esquenta",
+  "Reinicia sozinho / não inicia o sistema",
+  "Sem sinal de rede",
+  "Sem áudio / microfone",
+  "Não carrega (mesmo com conector novo)",
+  "Contato com líquido / oxidação",
+  "Outro",
+];
+
+export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: { userId: string; email?: string; userLoja?: string | null; isGlobal?: boolean; onDone: (id: string) => void }) {
+  const [atendimento, setAtendimento] = useState<"padrao" | "placa">("padrao");
+  const [sintomas, setSintomas] = useState<string[]>([]);
+  const [mexido, setMexido] = useState("nao_sabe");
+  const [consumo, setConsumo] = useState("");
+  const [valorPre, setValorPre] = useState("");
   const [now] = useState(() => new Date());
   const [f, setF] = useState({
     loja: isGlobal ? units[0].id : (userLoja ?? units[0].id),
@@ -61,8 +77,18 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
     e.preventDefault();
     if (!cienteRiscos) return toast.error("Confirme que o cliente foi avisado sobre os riscos da abertura.");
     if (!f.ciente_termos) return toast.error("Confirme que o cliente está ciente dos termos de garantia.");
+    const isPlaca = atendimento === "placa";
+    if (isPlaca && !sintomas.length) return toast.error("Marque ao menos um sintoma da triagem de placa.");
     setBusy(true);
     const { marca_outra, ...rest } = f;
+    const triagem = isPlaca
+      ? [
+          `TRIAGEM DE PLACA (balcão): ${sintomas.join(", ")}.`,
+          `Já mexido em outra assistência: ${mexido === "sim" ? "Sim" : mexido === "nao" ? "Não" : "Não sabe"}.`,
+          consumo.trim() && `Consumo/fonte: ${consumo.trim()}.`,
+          valorPre.trim() && `Valor pré-aprovado pelo cliente: R$ ${valorPre.trim()}.`,
+        ].filter(Boolean).join(" ")
+      : "";
     const { data, error } = await supabase
       .from("service_orders")
       .insert({
@@ -76,6 +102,14 @@ export function ServiceOrderForm({ userId, userLoja, isGlobal, onDone }: { userI
         assinatura_loja: sigLoja,
         assinatura_cliente: sigCliente,
         criado_por: userId,
+        ...(isPlaca
+          ? {
+              placa_status: "diagnostico",
+              localizacao: "loja",
+              historico_tecnico: [{ at: new Date().toISOString(), by: email ?? "balcão", texto: triagem, local: "loja", status: "diagnostico" }],
+              observacoes: [triagem, f.observacoes].filter(Boolean).join("\n"),
+            }
+          : {}),
       })
       .select("id")
       .single();
