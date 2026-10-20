@@ -57,6 +57,13 @@
       "when": 1792500149487,
       "tag": "0007_os_bancada_placa",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792518471187,
+      "tag": "0008_os_entry_bench_columns",
+      "breakpoints": true
     }
   ]
 }
