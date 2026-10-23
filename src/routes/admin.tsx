@@ -408,7 +408,7 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id, email, role, active, loja")
+        .select("user_id, email, role, active, loja, lojas")
         .order("created_at");
       if (error) throw error;
       return data;
@@ -450,14 +450,14 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
             </div>
             {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role !== "supervisor") && (
               <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                {(m.role === "member" || m.role === "gerente") && (
+                {m.role === "member" && (
                   <select
                     aria-label="Loja associada"
                     className="h-9 rounded-md border border-input bg-background px-2 text-xs"
                     value={m.loja ?? ""}
                     onChange={async (e) => {
                       try {
-                        await changeLoja({ data: { userId: m.user_id, loja: e.target.value } });
+                        await changeLoja({ data: { userId: m.user_id, lojas: [e.target.value] } });
                         toast.success("Loja atualizada.");
                         qc.invalidateQueries({ queryKey: ["members"] });
                       } catch (err) {
@@ -470,6 +470,34 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
                       <option key={u.id} value={u.id}>{u.shortName}</option>
                     ))}
                   </select>
+                )}
+                {m.role === "gerente" && (
+                  <div className="flex flex-wrap gap-2" aria-label="Lojas do gerente">
+                    {units.map((u) => {
+                      const current = m.lojas?.length ? m.lojas : m.loja ? [m.loja] : [];
+                      const on = current.includes(u.id);
+                      return (
+                        <label key={u.id} className="flex items-center gap-1 rounded-md border border-input px-2 py-1 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={async () => {
+                              const next = on ? current.filter((x) => x !== u.id) : [...current, u.id];
+                              if (!next.length) return toast.error("O gerente precisa de pelo menos uma loja.");
+                              try {
+                                await changeLoja({ data: { userId: m.user_id, lojas: next } });
+                                toast.success("Lojas atualizadas.");
+                                qc.invalidateQueries({ queryKey: ["members"] });
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : "Erro.");
+                              }
+                            }}
+                          />
+                          {u.shortName}
+                        </label>
+                      );
+                    })}
+                  </div>
                 )}
                 <label className="flex items-center gap-2 text-xs">
                   <Switch
