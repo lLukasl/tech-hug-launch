@@ -38,7 +38,8 @@ const SINTOMAS_PLACA = [
   "Outro",
 ];
 
-export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: { userId: string; email?: string; userLoja?: string | null; isGlobal?: boolean; onDone: (id: string) => void }) {
+export function ServiceOrderForm({ userId, email, userLoja, userLojas, isGlobal, onDone, onCancel }: { userId: string; email?: string; userLoja?: string | null; userLojas?: string[]; isGlobal?: boolean; onDone: (id: string) => void; onCancel?: () => void }) {
+  const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [atendimento, setAtendimento] = useState<"padrao" | "placa">("padrao");
   const [sintomas, setSintomas] = useState<string[]>([]);
   const [mexido, setMexido] = useState("nao_sabe");
@@ -129,9 +130,9 @@ export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label>Loja</Label>
-          {isGlobal ? (
+          {lojaUnits.length > 1 ? (
             <select className={selectCls} value={f.loja} onChange={(e) => set("loja", e.target.value)}>
-              {units.map((u) => (
+              {lojaUnits.map((u) => (
                 <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
@@ -339,9 +340,16 @@ export function ServiceOrderForm({ userId, email, userLoja, isGlobal, onDone }: 
         Estou ciente dos termos de garantia
       </label>
 
-      <Button type="submit" className="h-11 w-full" disabled={busy}>
-        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar ordem de serviço
-      </Button>
+      <div className="sticky -bottom-4 -mx-4 flex gap-2 border-t border-border bg-background p-3 sm:-bottom-6 sm:-mx-6 sm:px-6">
+        {onCancel && (
+          <Button type="button" variant="outline" className="h-11 flex-1" onClick={onCancel} disabled={busy}>
+            Fechar sem salvar
+          </Button>
+        )}
+        <Button type="submit" className="h-11 flex-[2]" disabled={busy}>
+          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar ordem de serviço
+        </Button>
+      </div>
     </form>
   );
 }

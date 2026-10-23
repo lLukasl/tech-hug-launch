@@ -64,7 +64,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 type Role = "superadmin" | "gerente" | "member" | "supervisor";
-type Session = { userId: string; role: Role; email: string; loja: string | null };
+type Session = { userId: string; role: Role; email: string; loja: string | null; lojas: string[] };
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ function AdminPage() {
     if (!data.user) return setState("out");
     const { data: r } = await supabase
       .from("user_roles")
-      .select("role, active, loja")
+      .select("role, active, loja, lojas")
       .eq("user_id", data.user.id)
       .maybeSingle();
     if (!r || !r.active) {
@@ -84,7 +84,7 @@ function AdminPage() {
       navigate({ to: "/", replace: true });
       return;
     }
-    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "", loja: r.loja ?? null });
+    setState({ userId: data.user.id, role: r.role as Role, email: data.user.email ?? "", loja: r.loja ?? null, lojas: r.lojas ?? [] });
   };
 
   useEffect(() => {
@@ -146,7 +146,7 @@ function AdminPage() {
               <ServiceOrders
                 userId={state.userId}
                 email={state.email}
-                userLoja={state.loja}
+                userLoja={state.loja} userLojas={state.lojas}
                 isGlobal={state.role === "superadmin" || state.role === "supervisor"}
                 isManager={state.role !== "member"}
               />
@@ -157,7 +157,7 @@ function AdminPage() {
                 email={state.email}
                 isManager={state.role !== "member"}
                 isGlobal={state.role === "superadmin" || state.role === "supervisor"}
-                userLoja={state.loja}
+                userLoja={state.loja} userLojas={state.lojas}
               />
             </TabsContent>
             {state.role !== "member" && (
@@ -167,13 +167,13 @@ function AdminPage() {
                   email={state.email}
                   isManager
                   isGlobal={state.role === "superadmin" || state.role === "supervisor"}
-                  userLoja={state.loja}
+                  userLoja={state.loja} userLojas={state.lojas}
                 />
               </TabsContent>
             )}
             {state.role !== "member" && (
               <TabsContent value="auditoria">
-                <OsAudit userLoja={state.loja} isGlobal={state.role === "superadmin" || state.role === "supervisor"} />
+                <OsAudit userLoja={state.loja} userLojas={state.lojas} isGlobal={state.role === "superadmin" || state.role === "supervisor"} />
               </TabsContent>
             )}
           </Tabs>
@@ -445,7 +445,7 @@ function TeamManager({ selfId, isSuper }: { selfId: string; isSuper: boolean }) 
               <p className="truncate font-medium">{m.email}</p>
               <p className="text-xs text-muted-foreground">
                 {ROLE_LABEL[m.role] ?? m.role}
-                {m.loja && ` · ${units.find((u) => u.id === m.loja)?.shortName ?? m.loja}`}
+                {(m.lojas?.length ? m.lojas : m.loja ? [m.loja] : []).map((l) => ` · ${units.find((u) => u.id === l)?.shortName ?? l}`).join("")}
               </p>
             </div>
             {m.user_id !== selfId && m.role !== "superadmin" && (isSuper || m.role !== "supervisor") && (

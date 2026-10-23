@@ -16,10 +16,11 @@ import { BenchDialog } from "@/components/admin/BenchDialog";
 const fsel = "h-10 rounded-md border border-input bg-background px-3 text-sm";
 type Row = { id: string; numero: number; created_at: string; loja: string; cliente_nome: string; modelo: string | null; marca: string | null; status: string; localizacao?: string; responsavel?: string | null; placa_status?: string | null; historico_tecnico?: unknown };
 
-type Props = { userId: string; email: string; userLoja: string | null; isGlobal: boolean; isManager: boolean };
+type Props = { userId: string; email: string; userLoja: string | null; userLojas?: string[]; isGlobal: boolean; isManager: boolean };
 
-export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: Props) {
+export function ServiceOrders({ userId, email, userLoja, userLojas, isGlobal, isManager }: Props) {
   const qc = useQueryClient();
+  const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [creating, setCreating] = useState(false);
   const [sharing, setSharing] = useState<Row | null>(null);
   const [canceling, setCanceling] = useState<Row | null>(null);
@@ -57,10 +58,10 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {isGlobal ? (
+        {lojaUnits.length > 1 ? (
           <select className={`${fsel} w-full`} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
-            <option value="">Todas as lojas</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
+            {isGlobal && <option value="">Todas as lojas</option>}
+            {lojaUnits.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
           </select>
         ) : (
           <p className={`${fsel} flex items-center bg-muted/40 font-medium`}>
@@ -142,7 +143,7 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
       )}
 
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
+        <DialogContent className="max-h-[90dvh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto p-4 pb-0 sm:p-6 sm:pb-0">
           <DialogHeader>
             <DialogTitle>Nova ordem de serviço</DialogTitle>
           </DialogHeader>
@@ -152,6 +153,8 @@ export function ServiceOrders({ userId, email, userLoja, isGlobal, isManager }: 
               email={email}
               userLoja={userLoja}
               isGlobal={isGlobal}
+              userLojas={userLojas}
+              onCancel={() => setCreating(false)}
               onDone={async (id) => {
                 setCreating(false);
                 await refresh();
@@ -286,7 +289,8 @@ type AuditRow = {
   cancelado_em: string | null;
 };
 
-export function OsAudit({ userLoja, isGlobal }: { userLoja: string | null; isGlobal: boolean }) {
+export function OsAudit({ userLoja, userLojas, isGlobal }: { userLoja: string | null; userLojas?: string[]; isGlobal: boolean }) {
+  const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [fLoja, setFLoja] = useState(isGlobal ? "" : (userLoja ?? ""));
   const [fMotivo, setFMotivo] = useState("");
   const { data, isLoading } = useQuery({
@@ -310,10 +314,10 @@ export function OsAudit({ userLoja, isGlobal }: { userLoja: string | null; isGlo
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-bold">Auditoria de cancelamentos</h1>
-        {isGlobal && (
+        {lojaUnits.length > 1 && (
           <select className={fsel} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
-            <option value="">Todas as lojas</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
+            {isGlobal && <option value="">Todas as lojas</option>}
+            {lojaUnits.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
           </select>
         )}
         <select className={fsel} value={fMotivo} onChange={(e) => setFMotivo(e.target.value)}>
