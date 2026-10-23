@@ -33,8 +33,9 @@ const saleDiscountLabel = (itens: unknown, total: number) => {
   return d > 0 ? ` · Desconto − ${formatBRL(d)}` : "";
 };
 
-export function Finance({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
+export function Finance({ userId, email, isManager, isGlobal, userLoja, userLojas }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null; userLojas?: string[] }) {
   const qc = useQueryClient();
+  const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [loja, setLoja] = useState(isGlobal ? units[0].id : (userLoja ?? units[0].id));
   const [data, setData] = useState(todaySP());
   const isToday = data === todaySP();
@@ -61,9 +62,9 @@ export function Finance({ userId, email, isManager, isGlobal, userLoja }: { user
         <h1 className="mr-auto text-2xl font-bold">Financeiro · Caixa</h1>
         <div className="space-y-1">
           <Label>Loja</Label>
-          {isGlobal ? (
+          {lojaUnits.length > 1 ? (
             <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
-              {units.map((u) => (
+              {lojaUnits.map((u) => (
                 <option key={u.id} value={u.id}>{u.shortName}</option>
               ))}
             </select>

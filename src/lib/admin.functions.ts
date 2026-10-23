@@ -85,7 +85,7 @@ export const createMember = createServerFn({ method: "POST" })
     if (error || !created.user) throw new Error(error?.message ?? "Erro ao criar conta");
     await supabaseAdmin
       .from("user_roles")
-      .insert({ user_id: created.user.id, role: data.role, email: data.email, loja });
+      .insert({ user_id: created.user.id, role: data.role, email: data.email, loja, lojas: loja ? [loja] : [] });
     return { ok: true };
   });
 
@@ -137,16 +137,22 @@ export const deleteMember = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Altera a loja associada de vendedor/gerente. Só superadmin e supervisor. */
+/** Altera a(s) loja(s) associada(s). Vendedor: 1 loja; gerente: 1 ou mais. Só superadmin e supervisor. */
 export const setMemberLoja = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ userId: z.string().uuid(), loja: z.string().min(1).max(50) }).parse(d))
+  .inputValidator((d) =>
+    z.object({ userId: z.string().uuid(), lojas: z.array(z.string().min(1).max(50)).min(1).max(20) }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await assertGlobal(context);
     const { supabaseAdmin, target } = await loadTarget(data.userId);
     if (!target || target.role === "superadmin" || target.role === "supervisor")
       throw new Error("Essa conta não tem loja associada.");
-    const { error } = await supabaseAdmin.from("user_roles").update({ loja: data.loja }).eq("user_id", data.userId);
+    const lojas = target.role === "gerente" ? Array.from(new Set(data.lojas)) : [data.lojas[0]];
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .update({ loja: lojas[0], lojas })
+      .eq("user_id", data.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

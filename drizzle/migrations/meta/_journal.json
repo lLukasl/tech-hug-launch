@@ -71,6 +71,13 @@
       "when": 1792520922352,
       "tag": "0009_os_servicos_realizados",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792760111884,
+      "tag": "0010_gerente_multiplas_lojas",
+      "breakpoints": true
     }
   ]
 }

@@ -16,8 +16,9 @@ const descontoLabel = (itens: unknown, total: number) => {
   return d > 0 ? ` · Desconto − ${formatBRL(d)}` : "";
 };
 
-export function Sales({ userId, email, isManager, isGlobal, userLoja }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null }) {
+export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas }: { userId: string; email: string; isManager: boolean; isGlobal: boolean; userLoja: string | null; userLojas?: string[] }) {
   const qc = useQueryClient();
+  const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [loja, setLoja] = useState(isGlobal ? units[0].id : (userLoja ?? units[0].id));
   const [periodo, setPeriodo] = useState<Periodo>("dia");
   const [fLoja, setFLoja] = useState("");
@@ -67,9 +68,9 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja }: { userId
         <h1 className="mr-auto text-2xl font-bold">{isManager ? "Vendas" : "Minhas vendas"}</h1>
         <div className="space-y-1">
           <Label>Loja do lançamento</Label>
-          {isGlobal ? (
+          {lojaUnits.length > 1 ? (
             <select className={sel} value={loja} onChange={(e) => setLoja(e.target.value)}>
-              {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
+              {lojaUnits.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
             </select>
           ) : (
             <p className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
@@ -103,10 +104,10 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja }: { userId
             </Button>
           ))}
         </div>
-        {isGlobal && (
+        {lojaUnits.length > 1 && (
           <select className={`${sel} w-auto`} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
             <option value="">Todas as lojas</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
+            {lojaUnits.map((u) => <option key={u.id} value={u.id}>{u.shortName}</option>)}
           </select>
         )}
         <select className={`${sel} w-auto`} value={fForma} onChange={(e) => setFForma(e.target.value)}>

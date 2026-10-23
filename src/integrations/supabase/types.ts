@@ -340,6 +340,7 @@ export type Database = {
           email: string | null
           id: string
           loja: string | null
+          lojas: string[]
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -349,6 +350,7 @@ export type Database = {
           email?: string | null
           id?: string
           loja?: string | null
+          lojas?: string[]
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -358,6 +360,7 @@ export type Database = {
           email?: string | null
           id?: string
           loja?: string | null
+          lojas?: string[]
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -387,6 +390,10 @@ export type Database = {
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       session_totals: { Args: { _session_id: string }; Returns: Json }
+      user_has_loja: {
+        Args: { _loja: string; _user_id: string }
+        Returns: boolean
+      }
       user_loja: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
