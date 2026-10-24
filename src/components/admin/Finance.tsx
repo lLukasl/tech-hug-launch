@@ -100,11 +100,13 @@ export function Finance({ userId, email, isManager, isGlobal, userLoja, userLoja
 export function OpenCash({ loja, userId, onDone }: { loja: string; userId: string; onDone: () => void }) {
   const [troco, setTroco] = useState("");
   const [busy, setBusy] = useState(false);
+  const valido = troco.trim() !== "" && Number.isFinite(Number(troco)) && Number(troco) >= 0;
   const open = async () => {
+    if (!valido) return toast.error("Digite o troco inicial (use 0 se o caixa estiver vazio).");
     setBusy(true);
     const { error } = await supabase
       .from("cash_sessions")
-      .insert({ loja, data: todaySP(), troco_inicial: Number(troco) || 0, aberto_por: userId });
+      .insert({ loja, data: todaySP(), troco_inicial: Number(troco), aberto_por: userId });
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Caixa aberto.");
@@ -113,9 +115,10 @@ export function OpenCash({ loja, userId, onDone }: { loja: string; userId: strin
   return (
     <div className="max-w-sm space-y-3 rounded-xl border border-border bg-card p-5 shadow-card">
       <p className="font-semibold">Caixa de hoje ainda não foi aberto</p>
-      <Label>Troco inicial (R$)</Label>
-      <Input type="number" step="0.01" min="0" value={troco} onChange={(e) => setTroco(e.target.value)} />
-      <Button className="w-full" onClick={open} disabled={busy}>
+      <Label>Troco inicial (R$) *</Label>
+      <Input type="number" step="0.01" min="0" placeholder="Ex.: 0 se estiver vazio" value={troco} onChange={(e) => setTroco(e.target.value)} />
+      {!valido && <p className="text-xs text-muted-foreground">Obrigatório. Digite 0 se o caixa estiver vazio.</p>}
+      <Button className="w-full" onClick={open} disabled={busy || !valido}>
         <Unlock className="mr-2 h-4 w-4" /> Abrir caixa
       </Button>
     </div>
@@ -213,6 +216,24 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
           {open ? "CAIXA ABERTO" : "CAIXA FECHADO"}
         </span>
         <span className="text-sm text-muted-foreground">Troco inicial: {formatBRL(Number(session.troco_inicial))}</span>
+        {isManager && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={async () => {
+              const v = window.prompt("Corrigir troco inicial (R$):", String(session.troco_inicial));
+              if (v == null) return;
+              const n = Number(v.replace(",", "."));
+              if (v.trim() === "" || !Number.isFinite(n) || n < 0) return toast.error("Valor inválido.");
+              const { error } = await supabase.from("cash_sessions").update({ troco_inicial: n }).eq("id", session.id);
+              if (error) return toast.error(error.message);
+              toast.success("Troco inicial corrigido.");
+              onChange();
+            }}
+          >
+            Editar troco
+          </Button>
+        )}
         {isManager && totals && (
           <Button size="sm" variant="outline" className="ml-auto" onClick={exportCsv}>
             <Download className="mr-1 h-4 w-4" /> Exportar caixa (Excel / Sheets)
