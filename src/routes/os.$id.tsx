@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";\nimport { Download, Loader2, Printer, Receipt, Share2 } from "lucide-react";\nimport { toast } from "sonner";\nimport { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
+import { useRef, useState } from "react";
+import { Download, Loader2, Printer, Receipt, Share2 } from "lucide-react";
+import { toast } from "sonner";
+import { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/products";
