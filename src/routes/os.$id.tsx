@@ -60,11 +60,43 @@ function OsPrint() {
     <div><span className="text-muted-foreground">{k}: </span><span className="font-medium">{v || "—"}</span></div>
   );
 
+  const fileName = `OS_${String(o.numero).padStart(5, "0")}_ClinicaCell.pdf`;
+  const shareText = `Olá ${o.cliente_nome}! Segue a Ordem de Serviço #${o.numero} da Clínica Cell${unit ? ` — ${unit.name}` : ""}.`;
+  const gerarPdf = async (modo: "share" | "download") => {
+    if (!docRef.current) return;
+    setBusy(true);
+    try {
+      const file = await elementToPdf(docRef.current, fileName);
+      if (modo === "download") return downloadFile(file);
+      const r = await sharePdf(file, shareText, o.cliente_telefone);
+      if (r === "downloaded") toast.success("PDF baixado. Arraste o arquivo para a conversa do WhatsApp que abriu.");
+    } catch (e) {
+      toast.error("Não foi possível gerar o PDF: " + (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const imprimirTermico = (w: 58 | 80) => {
+    setTermico(w);
+    const reset = () => { setTermico(null); window.removeEventListener("afterprint", reset); };
+    window.addEventListener("afterprint", reset);
+    setTimeout(() => window.print(), 150);
+  };
+
+  if (termico) return <ThermalTicket o={o} itens={itens} width={termico} naoDeixou={naoDeixou} />;
+
   return (
     <div className="mx-auto max-w-3xl bg-background p-6 text-sm text-foreground print:p-0">
-      <div className="mb-4 flex justify-end print:hidden">
-        <Button onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Imprimir / Salvar PDF</Button>
+      <div className="mb-4 flex flex-wrap justify-end gap-2 print:hidden">
+        <Button disabled={busy} className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => gerarPdf("share")}>
+          {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />} Enviar PDF no WhatsApp
+        </Button>
+        <Button disabled={busy} variant="outline" onClick={() => gerarPdf("download")}><Download className="mr-2 h-4 w-4" /> Baixar PDF</Button>
+        <Button variant="outline" onClick={() => imprimirTermico(80)}><Receipt className="mr-2 h-4 w-4" /> Térmica 80mm</Button>
+        <Button variant="outline" onClick={() => imprimirTermico(58)}><Receipt className="mr-2 h-4 w-4" /> Térmica 58mm</Button>
+        <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Imprimir A4</Button>
       </div>
+      <div ref={docRef} className="bg-background p-2">
       <header className="flex items-center gap-4 border-b border-border pb-4">
         <img src="/clinica-cell-logo.jpeg" alt="Clínica Cell" className="h-16 w-16" />
         <div className="flex-1">
