@@ -128,8 +128,8 @@ export function ServiceOrders({ userId, email, userLoja, userLojas, isGlobal, is
                     <Printer className="mr-1 h-4 w-4" /> PDF
                   </Link>
                 </Button>
-                <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => setSharing(o)}>
-                  <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
+                <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => window.open(`/os/${o.id}`, "_blank")}>
+                  <MessageCircle className="mr-1 h-4 w-4" /> Enviar PDF
                 </Button>
                 {o.status !== "cancelada" && o.status !== "entregue" && (
                   <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCanceling(o)}>

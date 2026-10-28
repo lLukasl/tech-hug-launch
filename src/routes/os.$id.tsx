@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { Download, Loader2, Printer, Receipt, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,7 @@ function OsPrint() {
         <Button variant="outline" onClick={() => imprimirTermico(58)}><Receipt className="mr-2 h-4 w-4" /> Térmica 58mm</Button>
         <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Imprimir A4</Button>
       </div>
+      <Toaster />
       <div ref={docRef} className="bg-background p-2">
       <header className="flex items-center gap-4 border-b border-border pb-4">
         <img src="/clinica-cell-logo.jpeg" alt="Clínica Cell" className="h-16 w-16" />
