@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Printer } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, Loader2, Printer, Receipt, Share2 } from "lucide-react";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/products";
@@ -35,6 +39,9 @@ export const Route = createFileRoute("/os/$id")({
 
 function OsPrint() {
   const { id } = Route.useParams();
+  const docRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [termico, setTermico] = useState<58 | 80 | null>(null);
   const { data: o, isLoading } = useQuery({
     queryKey: ["service-order", id],
     queryFn: async () => {
@@ -60,11 +67,44 @@ function OsPrint() {
     <div><span className="text-muted-foreground">{k}: </span><span className="font-medium">{v || "—"}</span></div>
   );
 
+  const fileName = `OS_${String(o.numero).padStart(5, "0")}_ClinicaCell.pdf`;
+  const shareText = `Olá ${o.cliente_nome}! Segue a Ordem de Serviço #${o.numero} da Clínica Cell${unit ? ` — ${unit.name}` : ""}.`;
+  const gerarPdf = async (modo: "share" | "download") => {
+    if (!docRef.current) return;
+    setBusy(true);
+    try {
+      const file = await elementToPdf(docRef.current, fileName);
+      if (modo === "download") return downloadFile(file);
+      const r = await sharePdf(file, shareText, o.cliente_telefone);
+      if (r === "downloaded") toast.success("PDF baixado. Arraste o arquivo para a conversa do WhatsApp que abriu.");
+    } catch (e) {
+      toast.error("Não foi possível gerar o PDF: " + (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const imprimirTermico = (w: 58 | 80) => {
+    setTermico(w);
+    const reset = () => { setTermico(null); window.removeEventListener("afterprint", reset); };
+    window.addEventListener("afterprint", reset);
+    setTimeout(() => window.print(), 150);
+  };
+
+  if (termico) return <ThermalTicket o={o} itens={itens} width={termico} naoDeixou={naoDeixou} />;
+
   return (
     <div className="mx-auto max-w-3xl bg-background p-6 text-sm text-foreground print:p-0">
-      <div className="mb-4 flex justify-end print:hidden">
-        <Button onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Imprimir / Salvar PDF</Button>
+      <div className="mb-4 flex flex-wrap justify-end gap-2 print:hidden">
+        <Button disabled={busy} className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => gerarPdf("share")}>
+          {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />} Enviar PDF no WhatsApp
+        </Button>
+        <Button disabled={busy} variant="outline" onClick={() => gerarPdf("download")}><Download className="mr-2 h-4 w-4" /> Baixar PDF</Button>
+        <Button variant="outline" onClick={() => imprimirTermico(80)}><Receipt className="mr-2 h-4 w-4" /> Térmica 80mm</Button>
+        <Button variant="outline" onClick={() => imprimirTermico(58)}><Receipt className="mr-2 h-4 w-4" /> Térmica 58mm</Button>
+        <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Imprimir A4</Button>
       </div>
+      <Toaster />
+      <div ref={docRef} className="bg-background p-2">
       <header className="flex items-center gap-4 border-b border-border pb-4">
         <img src="/clinica-cell-logo.jpeg" alt="Clínica Cell" className="h-16 w-16" />
         <div className="flex-1">
@@ -157,6 +197,49 @@ function OsPrint() {
           </div>
         ))}
       </section>
+      </div>
+    </div>
+  );
+}
+
+type Order = Record<string, any>;
+function ThermalTicket({ o, itens, width, naoDeixou }: { o: Order; itens: OsItem[]; width: 58 | 80; naoDeixou: string[] }) {
+  const unit = unitById(o.loja);
+  const hr = <div className="my-1 border-t border-dashed border-black" />;
+  return (
+    <div className="mx-auto bg-white font-mono text-black" style={{ width: `${width - 6}mm`, fontSize: width === 58 ? "9px" : "11px", lineHeight: 1.3 }}>
+      <style>{`@page { size: ${width}mm auto; margin: 3mm; } body { background: #fff; }`}</style>
+      <div className="text-center">
+        <p className="text-[1.3em] font-bold">CLÍNICA CELL</p>
+        <p>{unit?.name}</p>
+        <p>{unit?.phone}</p>
+      </div>
+      {hr}
+      <p className="text-center text-[1.2em] font-bold">OS #{o.numero}</p>
+      <p className="text-center">{new Date(o.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+      {hr}
+      <p><b>Cliente:</b> {o.cliente_nome}</p>
+      <p><b>Tel:</b> {o.cliente_telefone}</p>
+      <p><b>Aparelho:</b> {[TIPOS_APARELHO.find((t) => t.value === o.tipo_aparelho)?.label, o.marca, o.modelo, o.cor].filter(Boolean).join(" · ")}</p>
+      {naoDeixou.length > 0 && <p><b>Não deixou:</b> {naoDeixou.join(", ")}</p>}
+      <p><b>Defeito:</b> {o.defeito || "—"}</p>
+      {o.observacoes && <p><b>Obs:</b> {o.observacoes}</p>}
+      {hr}
+      {itens.map((i, k) => (
+        <div key={k}>
+          <p>{i.quantidade}x {i.discriminacao}</p>
+          <p className="text-right">{formatBRL(itemTotal(i))}</p>
+        </div>
+      ))}
+      <p className="flex justify-between text-[1.2em] font-bold"><span>TOTAL</span><span>{formatBRL(ordersTotal(itens))}</span></p>
+      {hr}
+      <p><b>Garantia:</b> {o.garantia_dias} dias</p>
+      <p className="text-[0.85em]">Termos completos de garantia na via em PDF.</p>
+      <p>{o.ciente_termos ? "[X]" : "[ ]"} Ciente dos termos de garantia</p>
+      <p>{o.ciente_riscos ? "[X]" : "[ ]"} Ciente dos riscos de abertura</p>
+      <div className="mt-8 border-t border-black pt-1 text-center">Cliente</div>
+      <div className="mt-8 border-t border-black pt-1 text-center">Clínica Cell</div>
+      <p className="mt-2 text-center">Obrigado pela preferência!</p>
     </div>
   );
 }

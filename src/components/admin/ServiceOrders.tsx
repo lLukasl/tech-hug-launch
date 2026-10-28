@@ -128,8 +128,8 @@ export function ServiceOrders({ userId, email, userLoja, userLojas, isGlobal, is
                     <Printer className="mr-1 h-4 w-4" /> PDF
                   </Link>
                 </Button>
-                <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => setSharing(o)}>
-                  <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
+                <Button size="sm" className="bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => window.open(`/os/${o.id}`, "_blank")}>
+                  <MessageCircle className="mr-1 h-4 w-4" /> Enviar PDF
                 </Button>
                 {o.status !== "cancelada" && o.status !== "entregue" && (
                   <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCanceling(o)}>
@@ -158,12 +158,10 @@ export function ServiceOrders({ userId, email, userLoja, userLojas, isGlobal, is
               onDone={async (id) => {
                 setCreating(false);
                 await refresh();
-                const { data: row } = await supabase
-                  .from("service_orders")
-                  .select("id, numero, created_at, loja, cliente_nome, modelo, marca, status")
-                  .eq("id", id)
-                  .single();
-                if (row) setSharing(row as Row);
+                toast.success("Ordem de serviço criada.", {
+                  duration: 15000,
+                  action: { label: "Enviar PDF / Imprimir", onClick: () => window.open(`/os/${id}`, "_blank") },
+                });
               }}
             />
           )}
