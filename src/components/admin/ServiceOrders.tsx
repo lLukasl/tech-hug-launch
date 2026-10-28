@@ -158,12 +158,10 @@ export function ServiceOrders({ userId, email, userLoja, userLojas, isGlobal, is
               onDone={async (id) => {
                 setCreating(false);
                 await refresh();
-                const { data: row } = await supabase
-                  .from("service_orders")
-                  .select("id, numero, created_at, loja, cliente_nome, modelo, marca, status")
-                  .eq("id", id)
-                  .single();
-                if (row) setSharing(row as Row);
+                toast.success("Ordem de serviço criada.", {
+                  duration: 15000,
+                  action: { label: "Enviar PDF / Imprimir", onClick: () => window.open(`/os/${id}`, "_blank") },
+                });
               }}
             />
           )}
