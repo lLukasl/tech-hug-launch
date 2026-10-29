@@ -68,15 +68,31 @@ function OsPrint() {
   );
 
   const fileName = `OS_${String(o.numero).padStart(5, "0")}_ClinicaCell.pdf`;
-  const shareText = `Olá ${o.cliente_nome}! Segue a Ordem de Serviço #${o.numero} da Clínica Cell${unit ? ` — ${unit.name}` : ""}.`;
+  const total = itens.reduce((s, i) => s + (Number(i.quantidade) || 0) * (Number(i.preco_unitario) || 0), 0);
+  const shareText = [
+    `Olá, ${o.cliente_nome}! Tudo bem?`,
+    `Segue em anexo a Ordem de Serviço *#${o.numero}* da Clínica Cell${unit ? ` — ${unit.name}` : ""}.`,
+    ``,
+    `📱 Aparelho: ${[o.marca, o.modelo].filter(Boolean).join(" ")}`,
+    total > 0 ? `💰 Valor: ${formatBRL(total)}` : "",
+    o.garantia_dias ? `🛡️ Garantia: ${o.garantia_dias} dias` : "",
+    ``,
+    unit ? `Qualquer dúvida, fale com a gente: ${unit.phone}` : "",
+  ].filter((l, i, a) => l !== "" || (a[i - 1] ?? "") !== "").join("\n");
+  const telDigits = (o.cliente_telefone ?? "").replace(/\D/g, "");
   const gerarPdf = async (modo: "share" | "download") => {
     if (!docRef.current) return;
+    if (modo === "share" && telDigits.length < 10) {
+      toast.error("Telefone do cliente inválido na OS. Corrija o número antes de enviar.");
+      return;
+    }
     setBusy(true);
     try {
       const file = await elementToPdf(docRef.current, fileName);
       if (modo === "download") return downloadFile(file);
       const r = await sharePdf(file, shareText, o.cliente_telefone);
-      if (r === "downloaded") toast.success("PDF baixado. Arraste o arquivo para a conversa do WhatsApp que abriu.");
+      if (r === "downloaded")
+        toast.success(`PDF baixado e conversa com ${o.cliente_nome} aberta. Anexe o arquivo baixado na conversa.`, { duration: 10000 });
     } catch (e) {
       toast.error("Não foi possível gerar o PDF: " + (e as Error).message);
     } finally {
