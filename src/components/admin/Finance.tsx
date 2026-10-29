@@ -316,6 +316,23 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
               <li key={w.id} className="flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm">
                 <span className="flex-1">{w.motivo}{isManager && w.criado_por_email && ` · ${w.criado_por_email}`}</span>
                 <span className="font-semibold">− {formatBRL(Number(w.valor))}</span>
+                {isManager && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-destructive"
+                    title="Apagar sangria"
+                    onClick={async () => {
+                      if (!confirm(`Apagar a sangria "${w.motivo}" de ${formatBRL(Number(w.valor))}?`)) return;
+                      const { error } = await supabase.from("cash_withdrawals").delete().eq("id", w.id);
+                      if (error) return toast.error(error.message);
+                      toast.success("Sangria apagada");
+                      refreshItems();
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </li>
             ))}
           </ul>
