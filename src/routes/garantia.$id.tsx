@@ -63,7 +63,7 @@ function Warranty() {
   const [ciente, setCiente] = useState(false);
 
   useEffect(() => {
-    if (s && !f.aparelho) setF((p) => ({ ...p, aparelho: itens[0]?.descricao ?? s.descricao }));
+    if (s && !f.aparelho) setF((p) => ({ ...p, aparelho: (itens.find((i) => i.tipo === "produto" || looksLikeDevice(i.descricao ?? "")) ?? itens[0])?.descricao ?? s.descricao }));
   }, [s]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) return <Loader2 className="mx-auto mt-20 h-6 w-6 animate-spin text-primary" />;
