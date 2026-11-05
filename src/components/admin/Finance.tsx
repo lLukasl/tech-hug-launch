@@ -1,3 +1,4 @@
+import { maskPhone } from "@/lib/service-orders";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
@@ -389,6 +390,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
   const [avPreco, setAvPreco] = useState("");
   const [cliente, setCliente] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [telOculto, setTelOculto] = useState(false);
   const [pags, setPags] = useState<Pagamento[]>([{ forma: "pix", valor: 0 }]);
   const [busy, setBusy] = useState(false);
 
@@ -440,7 +442,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     const total = Math.round(its.reduce((s, i) => s + i.quantidade * i.preco_unitario, 0) * 100) / 100;
     push({ tipo: "os", ref: o.id, descricao: `OS #${o.numero} — ${o.cliente_nome}`, quantidade: 1, preco_unitario: total });
     if (!cliente) setCliente(o.cliente_nome);
-    if (!telefone) setTelefone(o.cliente_telefone);
+    if (!telefone) { setTelefone(o.cliente_telefone); setTelOculto(true); }
   };
   const addAvulsa = () => {
     if (!avDesc.trim() || !(Number(avPreco) > 0)) return toast.error("Informe descrição e preço.");
@@ -567,7 +569,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
 
       <div className="grid gap-2 sm:grid-cols-2">
         <Input placeholder="Nome do cliente (opcional)" value={cliente} onChange={(e) => setCliente(e.target.value)} />
-        <Input placeholder="Telefone (opcional)" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+        <Input placeholder="Telefone (opcional)" value={telOculto ? maskPhone(telefone) : telefone} readOnly={telOculto} onFocus={() => telOculto && toast.info("Telefone da OS protegido.")} onChange={(e) => setTelefone(e.target.value)} />
       </div>
 
       <div className="space-y-2 border-t border-border pt-3">

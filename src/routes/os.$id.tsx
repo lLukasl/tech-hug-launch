@@ -18,6 +18,7 @@ import {
   itemTotal,
   ordersTotal,
   unitById,
+  maskPhone,
   type OsItem,
 } from "@/lib/service-orders";
 
@@ -42,6 +43,15 @@ function OsPrint() {
   const docRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [termico, setTermico] = useState<58 | 80 | null>(null);
+  const { data: isManager } = useQuery({
+    queryKey: ["os-is-manager"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return false;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id).maybeSingle();
+      return !!data && data.role !== "member";
+    },
+  });
   const { data: o, isLoading } = useQuery({
     queryKey: ["service-order", id],
     queryFn: async () => {
@@ -136,7 +146,7 @@ function OsPrint() {
 
       <section className="grid grid-cols-2 gap-2 border-b border-border py-4">
         {row("Cliente", o.cliente_nome)}
-        {row("Telefone", o.cliente_telefone)}
+        {row("Telefone", isManager ? o.cliente_telefone : maskPhone(o.cliente_telefone))}
         {row("Aparelho", TIPOS_APARELHO.find((t) => t.value === o.tipo_aparelho)?.label)}
         {row("Marca", o.marca)}
         {row("Modelo", o.modelo)}
@@ -235,7 +245,7 @@ function ThermalTicket({ o, itens, width, naoDeixou }: { o: Order; itens: OsItem
       <p className="text-center">{new Date(o.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
       {hr}
       <p><b>Cliente:</b> {o.cliente_nome}</p>
-      <p><b>Tel:</b> {o.cliente_telefone}</p>
+      <p><b>Tel:</b> {maskPhone(o.cliente_telefone)}</p>
       <p><b>Aparelho:</b> {[TIPOS_APARELHO.find((t) => t.value === o.tipo_aparelho)?.label, o.marca, o.modelo, o.cor].filter(Boolean).join(" · ")}</p>
       {naoDeixou.length > 0 && <p><b>Não deixou:</b> {naoDeixou.join(", ")}</p>}
       <p><b>Defeito:</b> {o.defeito || "—"}</p>
