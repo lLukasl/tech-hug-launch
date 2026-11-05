@@ -54,3 +54,14 @@ describe("total negociado", () => {
     expect(saleRecordDiscount([], NaN)).toBe(0);
   });
 });
+
+import { looksLikeDevice, monthRange, saleAmountFor } from "./finance";
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+d2("garantia por palavra-chave", () => {
+  i2("detecta aparelho", () => { e2(looksLikeDevice("iPhone 11 128GB")).toBe(true); e2(looksLikeDevice("Redmi Note 12")).toBe(true); });
+  i2("ignora acessório", () => { e2(looksLikeDevice("Capa iPhone 11")).toBe(false); e2(looksLikeDevice("Película Samsung")).toBe(false); });
+});
+d2("mês e forma", () => {
+  i2("fevereiro bissexto", () => e2(monthRange("2028-02")).toEqual(["2028-02-01", "2028-02-29"]));
+  i2("soma só a forma filtrada", () => e2(saleAmountFor({ total: 100, pagamentos: [{ forma: "pix", valor: 30 }, { forma: "dinheiro", valor: 70 }] as never }, "pix")).toBe(30));
+});

@@ -54,14 +54,12 @@ export const saleAmountFor = (s: { total: number | string; pagamentos: Pagamento
 
 const DEVICE_RE = /\b(iphone|galaxy|redmi|xiaomi|poco|samsung|motorola|moto\s?[a-z]?\d|realme|lg|asus|zenfone|nokia|oppo|vivo|infinix|celular|smartphone|aparelho|seminovo|semi-novo|usado|\d{2,4}\s?gb|\d\s?tb)\b/i;
 const ACC_RE = /\b(capa|capinha|pel[ií]cula|carregador|cabo|fone|fonte|suporte|bateria|tela|conserto|reparo|troca)\b/i;
-const BRAND_RE = /\b(iphone|galaxy|redmi|xiaomi|poco|samsung|motorola|realme|celular|smartphone|aparelho)\b/i;
 /** Detecta venda de aparelho por palavra-chave (para vendas avulsas fora do encarte). */
 export function looksLikeDevice(text: string) {
   if (!DEVICE_RE.test(text)) return false;
   if (ACC_RE.test(text) && !/\b(celular|smartphone|aparelho|seminovo|usado|\d{2,4}\s?gb)\b/i.test(text)) return false;
   return true;
 }
-void BRAND_RE;
 /** Venda elegível a termo de garantia: produto do encarte ou item avulso com palavra-chave de aparelho. */
 export function saleHasDevice(itens: unknown, descricao = "") {
   const list = Array.isArray(itens) ? (itens as { tipo?: string; descricao?: string }[]) : [];
