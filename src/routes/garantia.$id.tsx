@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SignaturePad } from "@/components/admin/SignaturePad";
 import { formatBRL } from "@/lib/products";
 import { unitById } from "@/lib/service-orders";
-import { type SaleItem } from "@/lib/finance";
+import { looksLikeDevice, type SaleItem } from "@/lib/finance";
 import { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
 
 export const Route = createFileRoute("/garantia/$id")({
