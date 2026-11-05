@@ -21,3 +21,10 @@ describe("bench items", () => {
   it("drops unnecessary initial service", () => expect(_ot(_ab(items, [0], 250, true))).toBe(250));
   it("excludes rejected board repair", () => expect(_ot(_ab(items, [], 250, false))).toBe(300));
 });
+
+import { maskPhone as _mask } from "./service-orders";
+describe("maskPhone", () => {
+  it("oculta o meio do número", () => {
+    expect(_mask("(61) 99233-7476")).toBe("(61) 9****-**76");
+  });
+});

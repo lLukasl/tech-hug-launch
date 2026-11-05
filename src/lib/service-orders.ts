@@ -148,3 +148,12 @@ export function shareOsLink(opts: { unitId: string; numero: number; cliente: str
   const text = `Ordem de Serviço #${opts.numero} — ${opts.cliente}\nAbrir / salvar PDF: ${opts.url}`;
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
+
+/** Oculta o telefone do cliente para quem não é gerente: (61) 9****-**76 */
+export function maskPhone(tel: string | null | undefined): string {
+  const d = (tel ?? "").replace(/\D/g, "");
+  if (d.length < 4) return d ? "****" : "";
+  const ddd = d.length >= 10 ? `(${d.slice(0, 2)}) ` : "";
+  const rest = d.length >= 10 ? d.slice(2) : d;
+  return `${ddd}${rest[0]}****-**${rest.slice(-2)}`;
+}
