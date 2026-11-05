@@ -509,7 +509,7 @@ export function SaleForm({ session, userId, email, onDone }: { session: Session;
     toast.success("Venda lançada.", {
       action: { label: "Comprovante", onClick: () => window.open(`/comprovante/${sale.id}`, "_blank") },
     });
-    setItens([]); setCliente(""); setTelefone(""); setNegotiatedTotal("");
+    setItens([]); setCliente(""); setTelefone(""); setTelOculto(false); setNegotiatedTotal("");
     setPags([{ forma: "pix", valor: 0 }]);
     ["products", "service-orders", "sale-products", "sale-os", "sales-list"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     onDone();
