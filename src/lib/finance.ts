@@ -41,6 +41,33 @@ export function periodRange(periodo: Periodo, hoje: string): [string, string] {
   return [fmt(ini), fmt(fim)];
 }
 
+/** Intervalo do mês "YYYY-MM". */
+export function monthRange(ym: string): [string, string] {
+  const [y, m] = ym.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return [`${ym}-01`, `${ym}-${String(last).padStart(2, "0")}`];
+}
+
+/** Valor da venda considerando o filtro de forma (só a parte paga naquela forma). */
+export const saleAmountFor = (s: { total: number | string; pagamentos: Pagamento[] }, forma?: string) =>
+  forma ? r2(s.pagamentos.filter((p) => p.forma === forma).reduce((a, p) => a + (p.valor || 0), 0)) : Number(s.total);
+
+const DEVICE_RE = /\b(iphone|galaxy|redmi|xiaomi|poco|samsung|motorola|moto\s?[a-z]?\d|realme|lg|asus|zenfone|nokia|oppo|vivo|infinix|celular|smartphone|aparelho|seminovo|semi-novo|usado|\d{2,4}\s?gb|\d\s?tb)\b/i;
+const ACC_RE = /\b(capa|capinha|pel[ií]cula|carregador|cabo|fone|fonte|suporte|bateria|tela|conserto|reparo|troca)\b/i;
+/** Detecta venda de aparelho por palavra-chave (para vendas avulsas fora do encarte). */
+export function looksLikeDevice(text: string) {
+  if (!DEVICE_RE.test(text)) return false;
+  if (ACC_RE.test(text) && !/\b(celular|smartphone|aparelho|seminovo|usado|\d{2,4}\s?gb)\b/i.test(text)) return false;
+  return true;
+}
+/** Venda elegível a termo de garantia: produto do encarte ou item avulso com palavra-chave de aparelho. */
+export function saleHasDevice(itens: unknown, descricao = "") {
+  const list = Array.isArray(itens) ? (itens as { tipo?: string; descricao?: string }[]) : [];
+  if (list.some((i) => i.tipo === "produto")) return true;
+  if (list.some((i) => i.tipo !== "os" && looksLikeDevice(i.descricao ?? ""))) return true;
+  return !list.length && looksLikeDevice(descricao);
+}
+
 /** Soma por forma de pagamento de uma lista de vendas. */
 export function sumByForma(sales: { pagamentos: Pagamento[] }[]) {
   const out: Record<Forma, number> = { credito: 0, debito: 0, pix: 0, dinheiro: 0 };

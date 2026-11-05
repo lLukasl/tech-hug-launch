@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SignaturePad } from "@/components/admin/SignaturePad";
 import { formatBRL } from "@/lib/products";
 import { unitById } from "@/lib/service-orders";
-import { type SaleItem } from "@/lib/finance";
+import { looksLikeDevice, type SaleItem } from "@/lib/finance";
 import { downloadFile, elementToPdf, sharePdf } from "@/lib/os-pdf";
 
 export const Route = createFileRoute("/garantia/$id")({
@@ -63,7 +63,7 @@ function Warranty() {
   const [ciente, setCiente] = useState(false);
 
   useEffect(() => {
-    if (s && !f.aparelho) setF((p) => ({ ...p, aparelho: itens[0]?.descricao ?? s.descricao }));
+    if (s && !f.aparelho) setF((p) => ({ ...p, aparelho: (itens.find((i) => i.tipo === "produto" || looksLikeDevice(i.descricao ?? "")) ?? itens[0])?.descricao ?? s.descricao }));
   }, [s]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) return <Loader2 className="mx-auto mt-20 h-6 w-6 animate-spin text-primary" />;
@@ -92,7 +92,6 @@ function Warranty() {
 
   const gerar = async (modo: "share" | "download") => {
     if (!docRef.current) return;
-    if (!f.imei.trim()) return toast.error("Informe o IMEI ou número de série.");
     if (modo === "share" && tel.replace(/\D/g, "").length < 10) return toast.error("Telefone do cliente ausente ou inválido nesta venda.");
     setBusy(true);
     try {
@@ -125,7 +124,7 @@ function Warranty() {
               <Input value={f.aparelho} onChange={(e) => set("aparelho", e.target.value)} />
             )}
           </div>
-          <div className="space-y-1"><Label>IMEI / Nº de série *</Label><Input value={f.imei} onChange={(e) => set("imei", e.target.value)} /></div>
+          <div className="space-y-1"><Label>IMEI / Nº de série (opcional)</Label><Input value={f.imei} onChange={(e) => set("imei", e.target.value)} /></div>
           <div className="space-y-1">
             <Label>Condição</Label>
             <select className={sel} value={f.condicao} onChange={(e) => { const c = e.target.value; setF((p) => ({ ...p, condicao: c, dias: c === "Novo" ? 365 : 90 })); }}>
