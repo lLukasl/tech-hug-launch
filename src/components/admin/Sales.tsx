@@ -149,6 +149,11 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
               <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
                 <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
               </Button>
+              {Array.isArray(s.itens) && (s.itens as { tipo?: string }[]).some((i) => i.tipo !== "os") && (
+                <Button size="icon" variant="ghost" asChild title="Termo de garantia do aparelho">
+                  <a href={`/garantia/${s.id}`} target="_blank" rel="noreferrer"><ShieldCheck className="h-4 w-4" /></a>
+                </Button>
+              )}
             </li>
           ))}
         </ul>
