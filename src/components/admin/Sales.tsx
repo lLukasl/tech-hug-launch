@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calculator, FileText, Loader2 } from "lucide-react";
+import { Calculator, FileText, ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -149,6 +149,11 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
               <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
                 <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
               </Button>
+              {Array.isArray(s.itens) && (s.itens as { tipo?: string }[]).some((i) => i.tipo !== "os") && (
+                <Button size="icon" variant="ghost" asChild title="Termo de garantia do aparelho">
+                  <a href={`/garantia/${s.id}`} target="_blank" rel="noreferrer"><ShieldCheck className="h-4 w-4" /></a>
+                </Button>
+              )}
             </li>
           ))}
         </ul>
