@@ -24,6 +24,7 @@ import {
   saleRecordDiscount,
   type Pagamento,
   type SaleItem,
+  saleHasDevice,
 } from "@/lib/finance";
 
 type Totals = { credito: number; debito: number; pix: number; dinheiro: number; vendas: number; sangrias: number };

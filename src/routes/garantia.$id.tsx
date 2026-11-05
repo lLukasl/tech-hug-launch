@@ -92,7 +92,6 @@ function Warranty() {
 
   const gerar = async (modo: "share" | "download") => {
     if (!docRef.current) return;
-    if (!f.imei.trim()) return toast.error("Informe o IMEI ou número de série.");
     if (modo === "share" && tel.replace(/\D/g, "").length < 10) return toast.error("Telefone do cliente ausente ou inválido nesta venda.");
     setBusy(true);
     try {
@@ -125,7 +124,7 @@ function Warranty() {
               <Input value={f.aparelho} onChange={(e) => set("aparelho", e.target.value)} />
             )}
           </div>
-          <div className="space-y-1"><Label>IMEI / Nº de série *</Label><Input value={f.imei} onChange={(e) => set("imei", e.target.value)} /></div>
+          <div className="space-y-1"><Label>IMEI / Nº de série (opcional)</Label><Input value={f.imei} onChange={(e) => set("imei", e.target.value)} /></div>
           <div className="space-y-1">
             <Label>Condição</Label>
             <select className={sel} value={f.condicao} onChange={(e) => { const c = e.target.value; setF((p) => ({ ...p, condicao: c, dias: c === "Novo" ? 365 : 90 })); }}>
