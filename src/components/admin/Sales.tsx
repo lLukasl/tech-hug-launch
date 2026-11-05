@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { units } from "@/lib/units";
 import { formatBRL } from "@/lib/products";
-import { FORMAS, periodRange, saleRecordDiscount, sumByForma, todaySP, type Pagamento, type Periodo } from "@/lib/finance";
+import { FORMAS, monthRange, periodRange, saleAmountFor, saleHasDevice, saleRecordDiscount, sumByForma, todaySP, type Pagamento, type Periodo } from "@/lib/finance";
 import { OpenCash, SaleForm, Stat } from "@/components/admin/Finance";
 
 const sel = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
@@ -20,7 +20,8 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
   const qc = useQueryClient();
   const lojaUnits = isGlobal ? units : units.filter((u) => (userLojas?.length ? userLojas : [userLoja]).includes(u.id));
   const [loja, setLoja] = useState(isGlobal ? units[0].id : (userLoja ?? units[0].id));
-  const [periodo, setPeriodo] = useState<Periodo>("dia");
+  const [periodo, setPeriodo] = useState<Periodo | "mesSel">("dia");
+  const [mesSel, setMesSel] = useState(todaySP().slice(0, 7));
   const [fLoja, setFLoja] = useState("");
   const [fForma, setFForma] = useState("");
   const [showTotal, setShowTotal] = useState(true);
@@ -34,7 +35,7 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
     },
   });
 
-  const [ini, fim] = periodRange(periodo, hoje);
+  const [ini, fim] = periodo === "mesSel" ? monthRange(mesSel) : periodRange(periodo, hoje);
   const { data: sales } = useQuery({
     queryKey: ["sales-list", ini, fim],
     queryFn: async () => {
@@ -43,7 +44,7 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
         .from("sales")
         .select("*")
         .gte("created_at", `${ini}T00:00:00-03:00`)
-        .lte("created_at", `${fim}T23:59:59-03:00`)
+        .lte("created_at", `${fim}T23:59:59.999-03:00`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -59,8 +60,8 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
     .filter((s) => (!fLoja || s.loja === fLoja))
     .filter((s) => !fForma || (s.pagamentos as Pagamento[]).some((p) => p.forma === fForma))
     .map((s) => ({ ...s, pagamentos: s.pagamentos as Pagamento[] }));
-  const byForma = sumByForma(list);
-  const total = list.reduce((a, s) => a + Number(s.total), 0);
+  const byForma = sumByForma(list.map((s) => ({ pagamentos: fForma ? s.pagamentos.filter((p) => p.forma === fForma) : s.pagamentos })));
+  const total = list.reduce((a, s) => a + saleAmountFor(s, fForma), 0);
 
   return (
     <div className="space-y-6">
@@ -103,6 +104,8 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
               {p === "dia" ? "Hoje" : p === "semana" ? "Semana" : "Mês"}
             </Button>
           ))}
+          <input type="month" className={`${sel} w-auto ${periodo === "mesSel" ? "border-primary" : ""}`} value={mesSel} title="Escolher mês"
+            onChange={(e) => { if (e.target.value) { setMesSel(e.target.value); setPeriodo("mesSel"); } }} />
         </div>
         {lojaUnits.length > 1 && (
           <select className={`${sel} w-auto`} value={fLoja} onChange={(e) => setFLoja(e.target.value)}>
@@ -149,7 +152,7 @@ export function Sales({ userId, email, isManager, isGlobal, userLoja, userLojas 
               <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
                 <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
               </Button>
-              {Array.isArray(s.itens) && (s.itens as { tipo?: string }[]).some((i) => i.tipo !== "os") && (
+              {saleHasDevice(s.itens, s.descricao) && (
                 <Button size="icon" variant="ghost" asChild title="Termo de garantia do aparelho">
                   <a href={`/garantia/${s.id}`} target="_blank" rel="noreferrer"><ShieldCheck className="h-4 w-4" /></a>
                 </Button>

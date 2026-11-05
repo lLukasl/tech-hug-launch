@@ -1,7 +1,7 @@
 import { maskPhone } from "@/lib/service-orders";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, FileText, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { Download, FileText, ShieldCheck, Loader2, Lock, Plus, Trash2, Unlock } from "lucide-react";
 import { buildCashCsv, downloadCsv } from "@/lib/cash-export";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -289,6 +289,11 @@ function SessionView({ session, userId, email, isManager, onChange }: { session:
                 <Button size="icon" variant="ghost" asChild title="Comprovante PDF">
                   <a href={`/comprovante/${s.id}`} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
                 </Button>
+                {saleHasDevice(s.itens, s.descricao) && (
+                  <Button size="icon" variant="ghost" asChild title="Termo de garantia do aparelho">
+                    <a href={`/garantia/${s.id}`} target="_blank" rel="noreferrer"><ShieldCheck className="h-4 w-4" /></a>
+                  </Button>
+                )}
                 {(isManager || (open && s.vendedor_id === userId)) && (
                   <Button
                     size="icon"
